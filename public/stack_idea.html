@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Show your Idea</title>
+        <link rel="icon" href="./img/img2.ico" type="images/x-icon">
+        <link href="/styles/stack_idea_styles.css" rel="stylesheet">
+    </head>
+    <body>
+        <header id="hat">
+            <div id="logotype"></div>
+            <h1 id="tagline">Show your Idea</h1>
+            <div id="line1"></div>
+            <div id="line2"></div>
+        </header>
+        <div id="main_prt">
+            <a id="back" href="/">
+                <h2 id="back_text">Back</h2>
+            </a>
+            <textarea id="heading" disabled></textarea>
+            <textarea id="content" disabled></textarea>
+        </div>
+        <footer id="info">
+            <h2 id="info_head">Информация:</h2>
+            <p id="FIO"> Конник Олег Николаевич</p>
+            <p id="phone">Телефон - +7(918)244-40-51</p>
+            <p id="mail">Почта - Konnik.oleg.05@mail.ru</p>
+        </footer>
+        <script>
+            const ajax = new XMLHttpRequest()
+            ajax.responseType = "json"
+            
+            let url = window.location.href // считал ссылку
+            let beg = url.indexOf("/article")
+            ajax.onload = function(){
+                if(this.status != 200){
+                    console.log(this.status + ":" + this.statusText)
+                }
+                else{
+                    let article = ajax.response
+                    console.log(article)
+                    document.getElementById("heading").innerHTML = article.heading
+                    document.getElementById("content").innerHTML = article.content
+                }
+            }
+            ajax.open("GET", url)
+            ajax.setRequestHeader('Content-Type', 'application/json')
+            ajax.send()
+        </script>
+    </body>
+</html>

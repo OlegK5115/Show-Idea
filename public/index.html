@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Show Idea</title>
+        <link rel="icon" href="/img/img2.ico" type="images/x-icon">
+        <link href="/styles/index_style.css" rel="stylesheet"/>
+        <script type="text/javascript" src="/javascript/index.js"></script>
+    </head>
+    <body onload="getLink(beg.toString(), end.toString())">
+        <header id="hat">
+            <div id="logotype"></div>
+            <h1 id="tagline">Show your Idea</h1>
+            <div id="line1"></div>
+            <div id="line2"></div>
+        </header>
+        <div id="main_prt">
+            <a id="public_idea" href="/public">
+                <h2 id="pb_text">Public Idea</h2>
+            </a>
+            <div id="stack_idea">
+                <h2 id="st_text">Stack Idea</h2>
+                <div id="line3"></div>
+                <div id="list">
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(0)">+</div>
+                            <div class="down" onclick="suppDown(0)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(1)">+</div>
+                            <div class="down" onclick="suppDown(1)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(2)">+</div>
+                            <div class="down" onclick="suppDown(2)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(3)">+</div>
+                            <div class="down" onclick="suppDown(3)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(4)">+</div>
+                            <div class="down" onclick="suppDown(4)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(5)">+</div>
+                            <div class="down" onclick="suppDown(5)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(6)">+</div>
+                            <div class="down" onclick="suppDown(6)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(7)">+</div>
+                            <div class="down" onclick="suppDown(7)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                    <div class="idea">
+                        <a class="articles" href=""></a>
+                        <form>
+                            <div class="up" onclick="suppUp(8)">+</div>
+                            <div class="down" onclick="suppDown(8)">-</div>
+                            <input type="hidden" class="saveID"/>
+                        </form>
+                    </div>
+                </div>
+                <div id="previous" onclick="previousArticles()">&#60;</div>
+                <div id="next" onclick="nextArticles()">&#62;</div>
+            </div>
+            <div id="support">
+                <div id="supp_text">Idea Support</div>
+                <div id="line4"></div>
+                <div id="TableSupp">
+                    <div id="CollectPoss">
+                        <p id="TextPoss">Possition:</p>
+                        <div class="poss">1</div>
+                        <div class="poss">2</div>
+                        <div class="poss">3</div>
+                        <div class="poss">4</div>
+                        <div class="poss">5</div>
+                        <div class="poss">6</div>
+                        <div class="poss">7</div>
+                        <div class="poss">8</div>
+                        <div class="poss">9</div>
+                    </div>
+                    <div id="CollectSupp">
+                        <p id="TextSupp">Support:</p>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                        <div class="supp"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer id="info">
+            <h2 id="info_head">Информация:</h2>
+            <p id="FIO"> Конник Олег Николаевич</p>
+            <p id="phone">Телефон - +7(918)244-40-51</p>
+            <p id="mail">Почта - Konnik.oleg.05@mail.ru</p>
+        </footer>
+        <script>
+            function getLink(begin, end){
+                const ajax = new XMLHttpRequest()
+                let field = document.querySelectorAll("div.idea")
+                let link = document.querySelectorAll("a.articles")
+                let plus = document.querySelectorAll("div.up")
+                let minus = document.querySelectorAll("div.down")
+                let supp = document.querySelectorAll("div.supp")
+                let poss = document.querySelectorAll("div.poss")
+                let saveID = document.querySelectorAll("input.saveID")
+                ajax.responseType = "json"
+                ajax.onload = function(){
+                    if(this.status != 200){
+                        console.log(this.status + ":" + this.statusText)
+                    }
+                    else{
+                        let ideas = ajax.response
+                        let coll = Math.min(end, ideas.length)
+                        for(let i = 0; i < coll-beg; i++){
+                            link[i].setAttribute("href", "/article/" + ideas[i+beg]._id)
+                            saveID[i].setAttribute("value", ideas[i+beg]._id)
+                            link[i].innerHTML = ideas[i+beg].heading
+                            supp[i].innerHTML = ideas[i+beg].support
+                            
+                            field[i].style.display = "block"
+                            plus[i].style.display = "block"
+                            minus[i].style.display = "block"
+                            poss[i].style.display = "block"
+                            supp[i].style.display = "block"
+                        }
+                        for(let i = coll-beg; i < 9; i++){
+                            link[i].setAttribute("href", "")
+                            saveID[i].setAttribute("value", "")
+                            link[i].innerHTML = ""
+                            field[i].style.display = "none"
+                            plus[i].style.display = "none"
+                            minus[i].style.display = "none"
+                            poss[i].style.display = "none"
+                            supp[i].style.display = "none"
+                        }
+                    }
+                }
+                ajax.open("GET", "/getlink")
+                ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+                ajax.send("beg=" + begin + "&end=" + end)
+                getChet()
+            }
+        </script>
+    </body>
+</html>
