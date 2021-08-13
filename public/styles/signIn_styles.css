@@ -46,7 +46,8 @@ html, body{
     margin-top: 5px;
     margin-left: 60px;
 }
-#form_reg {
+
+#form_signin {
     height: 500px;
     width: 60%;
     margin-top: 6%;
@@ -54,7 +55,8 @@ html, body{
     border-radius: 20px;
     background-color: rgb(34, 32, 48);
 }
-#sgn_text{
+
+#signin_text{
     text-align: center;
 }
 
