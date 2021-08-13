@@ -45,6 +45,24 @@ app.get('/public', (req, res) => {
     res.sendFile(path.join(__dirname, staticPath + "/public.html"))
 })
 
+app.get('/registration', (req, res) => {
+    res.sendFile(path.join(__dirname, staticPath + "/registration.html"))
+})
+
+app.get('/signIn', (req, res) => {
+    res.sendFile(path.join(__dirname, staticPath + "/signIn.html"))
+})
+
+//получение данных при регистрации
+app.post('/registration', urlensodedParser, (req, res) => {
+    
+})
+
+//проверка входа пользователя
+app.post('/signIn', urlensodedParser, (req, res) => {
+
+})
+
 //сохранение статьи
 app.post('/public', urlensodedParser , (req, res) => {
     lib.saveIdea({heading : req.body.heading, content :req.body.content})

@@ -22,6 +22,19 @@ html, body{
     border-top: 108px solid black;
     border-right: 180px solid transparent;
 }
+a.acclinks{
+    float: left;
+    font-size: 25px;
+    color: white;
+    margin-top: 0.5%;
+}
+#signIn {
+    margin-left: 13%;
+}
+#register {
+    margin-left: 1%;
+}
+
 #tagline{
     font-family: 'Trebuchet MS';
     float: left; /* выравнивание слева */
