@@ -28,16 +28,20 @@ function getLength() {
 
 exports.getLength = getLength
 
-function saveIdea(newIdea) {
+function saveIdea(newIdea, email) {
     if (newIdea.heading == "" || newIdea.content == ""){
         throw new Error("Wrong Idea")
     }
     else {
-       const idea = {heading : newIdea.heading, content : newIdea.content, support : 0}
-       return collection.insertOne(idea)
-        .then(result => {
-            return result.insertedId
-        })
+        return users.getUserByEmail(email).then(user => {
+            const authorId = user._id
+            const idea = {heading : newIdea.heading, content : newIdea.content, support : 0, authorId : authorId}
+            return collection.insertOne(idea)
+             .then(result => {
+                 return result.insertedId
+             })
+        }) 
+       
     }
 }
 

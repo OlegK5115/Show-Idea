@@ -60,7 +60,7 @@ app.post('/registration', urlensodedParser, (req, res) => {
 
 //проверка входа пользователя
 app.post('/signIn', urlensodedParser, (req, res) => {
-
+    
 })
 
 //сохранение статьи
