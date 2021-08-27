@@ -12,21 +12,27 @@ if (config.mode !== "testing") {
     app.use(logger('dev'));
 }
 
-let dbase, collect
-
 const urlensodedParser = require("body-parser").urlencoded({extended : false})
 
-const lib = require('./lib')
+const ideas = require('./lib/ideas')
+const users = require('./lib/users')
 
 let poss
 
 app.use(express.static(path.join(__dirname, staticPath)))
 
-lib.setup().then(status => {
-    if (status) {
+Promise.all([ideas.setup(), users.setup()]).then(statuses => {
+    let success = true
+    for (let status in statuses) {
+        if (!status) {
+            success = false
+            break
+        }
+    }
+    if (success) {
         app.listen(port, () => {
             console.log("http://localhost:" + port + "/")
-            lib.getLength().then(result => {
+            ideas.getLength().then(result => {
                 poss = result
             })
         })
@@ -49,23 +55,26 @@ app.get('/registration', (req, res) => {
     res.sendFile(path.join(__dirname, staticPath + "/registration.html"))
 })
 
-app.get('/signIn', (req, res) => {
-    res.sendFile(path.join(__dirname, staticPath + "/signIn.html"))
+app.get('/signin', (req, res) => {
+    res.sendFile(path.join(__dirname, staticPath + "/signin.html"))
 })
 
 //получение данных при регистрации
 app.post('/registration', urlensodedParser, (req, res) => {
-    
+    ideas.registration({name : req.body.user, email : req.body.email, password : req.body.password})
+    .then(id => {
+        res.redirect("/signin")
+    })
 })
 
 //проверка входа пользователя
-app.post('/signIn', urlensodedParser, (req, res) => {
+app.post('/signin', urlensodedParser, (req, res) => {
     
 })
 
 //сохранение статьи
 app.post('/public', urlensodedParser , (req, res) => {
-    lib.saveIdea({heading : req.body.heading, content :req.body.content})
+    ideas.saveIdea({heading : req.body.heading, content :req.body.content})
     .then(id => {
         res.redirect("/")
     })
@@ -73,19 +82,18 @@ app.post('/public', urlensodedParser , (req, res) => {
 
 //получение ссылок
 app.get("/getlink", (req, res) => {
-    lib.getAllIdeas().then(result => {
+    ideas.getAllIdeas().then(result => {
         res.send(result)
     })
 })
 
 //получение статьи
 app.get("/article/:id", (req, res) => {
-    lib.showIdea(req.params["id"])
+    ideas.showIdea(req.params["id"])
     .then(idea => {
         if (!idea.status){
             res.statusCode = 404
         }
-        console.log(req.headers['content-type'])
         if (req.headers['content-type'] == 'application/json') {
             res.json(idea)
         } else {
@@ -96,13 +104,13 @@ app.get("/article/:id", (req, res) => {
 
 //повышение поддержки
 app.post("/suppup/:id", urlensodedParser, (req, res) => {
-    lib.ideaUp(req.params["id"])
+    ideas.ideaUp(req.params["id"])
     res.end()
 })
 
 //понижение поддержки
 app.post("/suppdown/:id", urlensodedParser, (req, res) => {
-    lib.ideaDown(req.params["id"])
+    ideas.ideaDown(req.params["id"])
     res.end()
 })
 

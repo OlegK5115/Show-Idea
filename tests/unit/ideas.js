@@ -1,20 +1,27 @@
 const should = require('should')
-const lib = require('../../lib')
+const ideas = require('../../lib/ideas')
+const users = require('../../lib/users')
 
 // запуск тестов через npm test
 
 describe('Ideas', function() {
     before(function() {
       // очистка базы данных
-        return lib.setup()
+        return ideas.setup()
         .then(() => {
-          return lib.clearIdeas()
+          return users.setup()
+          .then(() => {
+            return ideas.clearIdeas()
+            .then(() => {
+              return users.clearUsers()
+            })
+          })
         })
     })
 
     context('There is no Ideas', function() {
         it('Getting list of Ideas without parameters', function() {
-          return lib.getAllIdeas()
+          return ideas.getAllIdeas()
             .then(ideas => {
               ideas.should.be.an.instanceOf(Array).and.have.lengthOf(0)
             })
@@ -23,20 +30,29 @@ describe('Ideas', function() {
     })
 
     context('There is one Idea', function() {
+      const user = {
+        name : "Alex",
+        email : "alexf1989@example.com",
+        password : "Pitbuli32"
+      } 
+
       const idea = {
         "heading": "test",
         "content": "This is my first idea"
       }
 
       before(function() {
-        return lib.saveIdea(idea)
+        return users.registration(user)
+        .then(() => {
+          return ideas.saveIdea(idea, user.email)
           .then((id) => {
             idea.id = id
           })
+        })
       })
 
       it('Getting list of Ideas', function(){
-        return lib.getAllIdeas()
+        return ideas.getAllIdeas()
           .then(ideas => {
             ideas.should.be.an.instanceOf(Array).and.have.lengthOf(1)
             ideas[0].should.have.property("_id", idea.id)
@@ -47,11 +63,20 @@ describe('Ideas', function() {
       // test для SaveIdea
 
       after(function() {
-        return lib.clearIdeas()
+        return ideas.clearIdeas()
+        .then(() => {
+          return users.clearUsers()
+        })
       })
     })
 
     context('There are two Ideas', function() {
+      const user = {
+        name : "Alex",
+        email : "alexf1989@example.com",
+        password : "Pitbuli32"
+      }
+
       const idea1 = {
         "heading": "test",
         "content": "This is my first idea"
@@ -62,18 +87,21 @@ describe('Ideas', function() {
       }
       let id1, id2
       before(function() {
-        return lib.saveIdea(idea1)
-        .then(id => {
-          id1 = id
-          return lib.saveIdea(idea2)
+        return users.registration(user)
+        .then(() => {
+          return ideas.saveIdea(idea1, user.email)
           .then(id => {
-            id2 = id
+            id1 = id
+            return ideas.saveIdea(idea2, user.email)
+            .then(id => {
+              id2 = id
+            })
           })
         })
       })
 
       it('Support idea', function() {
-        return lib.ideaUp(id2)
+        return ideas.ideaUp(id2)
         .then(supp => {
           supp.should.equal(1)
         })
@@ -81,14 +109,14 @@ describe('Ideas', function() {
       })
 
       it('Unsupport idea', function() {
-        return lib.ideaDown(id1)
+        return ideas.ideaDown(id1)
         .then(supp => {
           supp.should.equal(-1)
         })
       })
       // Тест down с одной идеей
       after(function() {
-        return lib.clearIdeas()
+        return ideas.clearIdeas()
       })
     })
 })

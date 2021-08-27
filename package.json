@@ -8,7 +8,9 @@
   },
   "scripts": {
     "start": "NODE_ENV=production MODE=production DEBUG=Show-Idea node ./main.js",
-    "test": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
+    "test": "npm run test-ideas; npm run test-users",
+    "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
+    "test-users" : "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
     "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js"
   },
   "author": "Oleg",
@@ -20,7 +22,8 @@
     "mongodb": "^4.0.1",
     "mongoose": "^5.13.5",
     "morgan": "^1.10.0",
-    "should": "^13.2.3"
+    "should": "^13.2.3",
+    "supertest": "^6.1.6"
   },
   "devDependencies": {
     "jasmine-node": "^3.0.0",

@@ -1,6 +1,6 @@
 const supertest = require('supertest')
 
-const ideasDb = require('../../lib')
+const ideasDb = require('../../lib/ideas')
 
 describe('GET /article/:id', function() {
     let app
@@ -24,6 +24,7 @@ describe('GET /article/:id', function() {
             return agent
             .get('/article/AAAAAAAAAAAAAAAAAAAAAAAA')
             .set('X-Request-With', 'XMLHttpRequest')
+            .set('Content-Type', 'application/json')
             .expect('Content-Type', /application\/json/)
             .expect(404)
             .then(res => {
