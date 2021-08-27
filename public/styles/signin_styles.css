@@ -58,6 +58,26 @@ html, body{
 
 #signin_text{
     text-align: center;
+    color: lightgray;
+}
+
+label {
+    font-family: serif;
+    font-size: 20pt;
+    color: lightgray;
+}
+
+#email, #password {
+    font-family: serif;
+    font-size: 20pt;
+    height: 10%;
+    width: 72%;
+    margin-top: 5%;
+    margin-left: 1%;
+}
+
+#email {
+    margin-left: 7%;
 }
 
 #info_head{
