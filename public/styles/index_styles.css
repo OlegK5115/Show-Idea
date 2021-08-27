@@ -40,7 +40,7 @@ a.acclinks{
 }
 
 #tagline{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 28pt;
     margin-left: 180px;
@@ -59,7 +59,7 @@ a.acclinks{
 }
 
 #pb_text{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     font-size: 28pt;
     margin-top: 5px;
     margin-left: 85px;
@@ -76,7 +76,7 @@ a.acclinks{
     background-color: rgb(34, 32, 48);
 }
 #supp_text{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     font-size: 50px;
     margin-top: 5px;
     margin-left: 65px;
@@ -140,7 +140,7 @@ div.supp{
     background-color: rgb(34, 32, 48);
 }
 #st_text{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     font-size: 50px;
     margin-top: 5px;
     margin-left: 330px;
@@ -216,23 +216,23 @@ div.down{
 }
 
 #info_head{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     margin-left: 20px;
 }
 #FIO{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 20px;
     margin-left: 50px;
 }
 #phone{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 20px;
     margin-left: 50px;
 }
 #mail{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 20px;
     margin-left: 50px;

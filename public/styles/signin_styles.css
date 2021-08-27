@@ -15,7 +15,7 @@ html, body{
     border-right: 180px solid transparent;
 }
 #tagline{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 70px;
     margin-left: 180px;
@@ -41,7 +41,7 @@ html, body{
     border-radius: 20px;
 }
 #back_text{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     font-size: 50px;
     margin-top: 5px;
     margin-left: 60px;
@@ -81,23 +81,23 @@ label {
 }
 
 #info_head{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     margin-left: 20px;
 }
 #FIO{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 20px;
     margin-left: 50px;
 }
 #phone{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 20px;
     margin-left: 50px;
 }
 #mail{
-    font-family: 'Trebuchet MS';
+    font-family: serif;
     float: left; /* выравнивание слева */
     font-size: 20px;
     margin-left: 50px;
