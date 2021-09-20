@@ -1,6 +1,31 @@
 let chet
 let beg = 0, end = 9
 let tablePoss = document.querySelectorAll("div.poss")
+
+function start(){
+    checkAuth()
+    getLink(beg.toString(), end.toString())
+}
+
+function checkAuth() {
+    const ajax = new XMLHttpRequest()
+    let signin = document.getElementById("signIn")
+    let register = document.getElementById("register")
+    ajax.responseType = "json"
+    ajax.onload = function(){
+        if(this.status != 200){
+            console.log(this.status + ":" + this.statusText)
+        }
+        else if(ajax.response.status){
+            signin.innerHTML = ajax.response.name
+            register.innerHTML = "log out"
+            register.setAttribute("href", "/auth/logout")
+        }
+    }
+    ajax.open("POST", "/auth/check")
+    ajax.send()
+}
+
 function getChet(){
     const ajax = new XMLHttpRequest()
     ajax.onload = function(){

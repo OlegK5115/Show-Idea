@@ -10,18 +10,21 @@
     "start": "NODE_ENV=production MODE=production DEBUG=Show-Idea node ./main.js",
     "test": "npm run test-ideas; npm run test-users",
     "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
-    "test-users" : "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
+    "test-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
     "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js"
   },
   "author": "Oleg",
   "license": "ISC",
   "dependencies": {
     "config": "^3.3.6",
+    "connect-redis": "^6.0.0",
+    "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
     "mongodb": "^4.0.1",
     "mongoose": "^5.13.5",
     "morgan": "^1.10.0",
+    "redis": "^3.1.2",
     "should": "^13.2.3",
     "supertest": "^6.1.6"
   },

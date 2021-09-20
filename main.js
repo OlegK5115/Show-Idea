@@ -2,6 +2,11 @@ const express = require('express')
 const app = express()
 const port = 2005
 
+const redis = require('redis')
+//const cookieParser = require('cookie-parser')
+const session = require('express-session')
+const RedisStore = require('connect-redis')(session)
+
 const config = require('config')
 
 const staticPath = 'public'
@@ -20,6 +25,18 @@ const users = require('./lib/users')
 let poss
 
 app.use(express.static(path.join(__dirname, staticPath)))
+//app.use(cookieParser())
+app.use(session({
+    secret : "qsxcdecftygbnjimko",
+    store : new RedisStore({
+        client : redis.createClient(), // creating a new client database connection
+        prefix : 'show-idea:session:' // signature for sessions
+    }),
+    resave : true,
+    saveUninitialized : true
+}))
+
+//!! ПРОБЛЕМА: я не создаю несколько сессий, я создаю одну и её изменяю
 
 Promise.all([ideas.setup(), users.setup()]).then(statuses => {
     let success = true
@@ -40,6 +57,7 @@ Promise.all([ideas.setup(), users.setup()]).then(statuses => {
 })
 
 app.get('/', (req, res) => {
+    req.session.login = false
     res.sendFile(path.join(__dirname, staticPath + "/index.html"))
 })
 
@@ -59,22 +77,45 @@ app.get('/signin', (req, res) => {
     res.sendFile(path.join(__dirname, staticPath + "/signin.html"))
 })
 
+//выход с аккаунта
+app.get('/auth/logout', (req, res) => {
+
+})
+
 //получение данных при регистрации
 app.post('/registration', urlensodedParser, (req, res) => {
-    ideas.registration({name : req.body.user, email : req.body.email, password : req.body.password})
+    users.registration({name : req.body.user, email : req.body.email, password : req.body.password})
     .then(id => {
         res.redirect("/signin")
     })
 })
 
-//проверка входа пользователя
+//проверка пользователя при входе
 app.post('/signin', urlensodedParser, (req, res) => {
-    
+    users.signin({email : req.body.email, password : req.body.password})
+    .then(user => {
+        req.session.login = true
+        req.session.name = user.name
+        req.session.email = user.email
+        res.redirect("/")
+    })
+})
+
+//проверка входа пользователя
+app.post('/auth/check', (req, res) => {
+    let rezult
+    if(req.session.login){
+        rezult = {status : req.session.login, name : req.session.name}
+    }
+    else{
+        rezult = {status : false}
+    }
+    res.json(rezult)
 })
 
 //сохранение статьи
 app.post('/public', urlensodedParser , (req, res) => {
-    ideas.saveIdea({heading : req.body.heading, content :req.body.content})
+    ideas.saveIdea({heading : req.body.heading, content :req.body.content}, req.session.email)
     .then(id => {
         res.redirect("/")
     })
