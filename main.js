@@ -33,10 +33,15 @@ app.use(session({
         prefix : 'show-idea:session:' // signature for sessions
     }),
     resave : true,
-    saveUninitialized : true
+    saveUninitialized : false,
+    cookie : {
+        maxAge : 1000*60*10, // 10 minute
+        httpOnly : false
+    }
 }))
 
-//!! ПРОБЛЕМА: я не создаю несколько сессий, я создаю одну и её изменяю
+/* Сессия создается при входе на сайт в браузере. При входе на другой
+аккаунт использовать другой браузер */
 
 Promise.all([ideas.setup(), users.setup()]).then(statuses => {
     let success = true
@@ -57,7 +62,6 @@ Promise.all([ideas.setup(), users.setup()]).then(statuses => {
 })
 
 app.get('/', (req, res) => {
-    req.session.login = false
     res.sendFile(path.join(__dirname, staticPath + "/index.html"))
 })
 
@@ -79,31 +83,46 @@ app.get('/signin', (req, res) => {
 
 //выход с аккаунта
 app.get('/auth/logout', (req, res) => {
-
+    delete req.session.name
+    delete req.session.email
+    delete req.session.login
+    req.session.destroy(function () {
+        res.redirect("/")
+    })
 })
 
 //получение данных при регистрации
 app.post('/registration', urlensodedParser, (req, res) => {
     users.registration({name : req.body.user, email : req.body.email, password : req.body.password})
-    .then(id => {
-        res.redirect("/signin")
+    .then(rezult => {
+        if(rezult.status){
+            res.redirect("/signin")
+        }
+        else{
+            res.redirect("/registration")
+        }
     })
 })
 
 //проверка пользователя при входе
 app.post('/signin', urlensodedParser, (req, res) => {
     users.signin({email : req.body.email, password : req.body.password})
-    .then(user => {
-        req.session.login = true
-        req.session.name = user.name
-        req.session.email = user.email
-        res.redirect("/")
+    .then(rezult => {
+        if(rezult.status){
+            req.session.login = true
+            req.session.name = rezult.user.name
+            req.session.email = rezult.user.email
+            res.redirect("/")
+        }
+        else{
+            res.redirect("/signin")
+        }
     })
 })
 
 //проверка входа пользователя
 app.post('/auth/check', (req, res) => {
-    let rezult
+    let rezult = {}
     if(req.session.login){
         rezult = {status : req.session.login, name : req.session.name}
     }
@@ -113,8 +132,10 @@ app.post('/auth/check', (req, res) => {
     res.json(rezult)
 })
 
+// существует req.session.id
 //сохранение статьи
 app.post('/public', urlensodedParser , (req, res) => {
+    console.log(req.session.id)
     ideas.saveIdea({heading : req.body.heading, content :req.body.content}, req.session.email)
     .then(id => {
         res.redirect("/")
@@ -146,13 +167,17 @@ app.get("/article/:id", (req, res) => {
 //повышение поддержки
 app.post("/suppup/:id", urlensodedParser, (req, res) => {
     ideas.ideaUp(req.params["id"])
-    res.end()
+    .then(result => {
+        res.end()
+    })
 })
 
 //понижение поддержки
 app.post("/suppdown/:id", urlensodedParser, (req, res) => {
     ideas.ideaDown(req.params["id"])
-    res.end()
+    .then(result => {
+        res.end()
+    })
 })
 
 module.exports = app

@@ -1,6 +1,7 @@
 let chet
 let beg = 0, end = 9
 let tablePoss = document.querySelectorAll("div.poss")
+let login = false
 
 function start(){
     checkAuth()
@@ -11,8 +12,10 @@ function checkAuth() {
     const ajax = new XMLHttpRequest()
     let signin = document.getElementById("signIn")
     let register = document.getElementById("register")
+    let public = document.getElementById("public_idea")
     ajax.responseType = "json"
     ajax.onload = function(){
+        login = ajax.response.status
         if(this.status != 200){
             console.log(this.status + ":" + this.statusText)
         }
@@ -20,6 +23,7 @@ function checkAuth() {
             signin.innerHTML = ajax.response.name
             register.innerHTML = "log out"
             register.setAttribute("href", "/auth/logout")
+            public.style.pointerEvent = true
         }
     }
     ajax.open("POST", "/auth/check")
@@ -39,35 +43,46 @@ function getChet(){
     ajax.open("POST", "/poss")
     ajax.send()
 }
+
+function publicIdea(){
+    if(login){
+        window.location.replace('/public')
+    }
+}
+
 function suppUp(ident){
     const ajax = new XMLHttpRequest()
     let saveID = document.querySelectorAll("input.saveID")
-    ajax.onload = function(){
-        if(this.status != 200){
-            console.log(this.status + ":" + this.statusText)
+    if(login){
+        ajax.onload = function(){
+            if(this.status != 200){
+                console.log(this.status + ":" + this.statusText)
+            }
+            else{
+                getLink(beg.toString(), end.toString())
+            }
         }
-        else{
-            getLink(beg.toString(), end.toString())
-        }
+        ajax.open("POST", "/suppup/" + saveID[ident].getAttribute("value"))
+        ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+        ajax.send()
     }
-    ajax.open("POST", "/suppup/" + saveID[ident].getAttribute("value"))
-    ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    ajax.send()
 }
 function suppDown(ident){
     const ajax = new XMLHttpRequest()
     let saveID = document.querySelectorAll("input.saveID")
-    ajax.onload = function(){
-        if(this.status != 200){
-            console.log(this.status + ":" + this.statusText)
+    if(login){
+        ajax.onload = function(){
+            if(this.status != 200){
+                console.log(this.status + ":" + this.statusText)
+            }
+            else{
+                getLink(beg.toString(), end.toString())
+            }
         }
-        else{
-            getLink(beg.toString(), end.toString())
-        }
+        ajax.open("POST", "/suppdown/" + saveID[ident].getAttribute("value"))
+        ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+        ajax.send()
     }
-    ajax.open("POST", "/suppdown/" + saveID[ident].getAttribute("value"))
-    ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-    ajax.send()
 }
 function previousArticles(){
     if(beg > 0){
