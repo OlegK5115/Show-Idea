@@ -35,7 +35,7 @@ app.use(session({
     resave : true,
     saveUninitialized : false,
     cookie : {
-        maxAge : 1000*60*10, // 10 minute
+        maxAge : 1000*60*60*24, // 24 hours
         httpOnly : false
     }
 }))
@@ -70,7 +70,12 @@ app.post('/poss', (req, res) => {
 })
 
 app.get('/public', (req, res) => {
-    res.sendFile(path.join(__dirname, staticPath + "/public.html"))
+    if(req.session.login){
+        res.sendFile(path.join(__dirname, staticPath + "/public.html"))
+    }
+    else{
+        res.redirect("/")
+    }
 })
 
 app.get('/registration', (req, res) => {
@@ -87,6 +92,9 @@ app.get('/auth/logout', (req, res) => {
     delete req.session.email
     delete req.session.login
     req.session.destroy(function () {
+        //уничтожение текущей сессии.
+        /*При использовании store.destroy(id, callback) идет
+        удаление сессии внутри хранилища по id*/
         res.redirect("/")
     })
 })
@@ -95,11 +103,17 @@ app.get('/auth/logout', (req, res) => {
 app.post('/registration', urlensodedParser, (req, res) => {
     users.registration({name : req.body.user, email : req.body.email, password : req.body.password})
     .then(rezult => {
-        if(rezult.status){
-            res.redirect("/signin")
+        if(req.headers['content-type'] == 'application/json') {
+            console.log("Yes")
+            res.json(rezult)
         }
-        else{
-            res.redirect("/registration")
+        else {
+            if(rezult.status){
+                res.redirect("/signin")
+            }
+            else{
+                res.redirect("/registration")
+            }
         }
     })
 })
@@ -108,14 +122,19 @@ app.post('/registration', urlensodedParser, (req, res) => {
 app.post('/signin', urlensodedParser, (req, res) => {
     users.signin({email : req.body.email, password : req.body.password})
     .then(rezult => {
-        if(rezult.status){
-            req.session.login = true
-            req.session.name = rezult.user.name
-            req.session.email = rezult.user.email
-            res.redirect("/")
+        if(req.headers['content-type'] == 'application/json') {
+            res.json(rezult)
         }
         else{
-            res.redirect("/signin")
+            if(rezult.status){
+                req.session.login = true
+                req.session.name = rezult.user.name
+                req.session.email = rezult.user.email
+                res.redirect("/")
+            }
+            else {
+                res.redirect("/signin")
+            }
         }
     })
 })
@@ -136,10 +155,15 @@ app.post('/auth/check', (req, res) => {
 //сохранение статьи
 app.post('/public', urlensodedParser , (req, res) => {
     console.log(req.session.id)
-    ideas.saveIdea({heading : req.body.heading, content :req.body.content}, req.session.email)
-    .then(id => {
+    if(req.session.login){
+        ideas.saveIdea({heading : req.body.heading, content :req.body.content}, req.session.email)
+        .then(id => {
+            res.redirect("/")
+        })
+    }
+    else{
         res.redirect("/")
-    })
+    }
 })
 
 //получение ссылок
@@ -166,7 +190,7 @@ app.get("/article/:id", (req, res) => {
 
 //повышение поддержки
 app.post("/suppup/:id", urlensodedParser, (req, res) => {
-    ideas.ideaUp(req.params["id"])
+    ideas.ideaUp(req.session.email, req.params["id"])
     .then(result => {
         res.end()
     })
@@ -174,7 +198,7 @@ app.post("/suppup/:id", urlensodedParser, (req, res) => {
 
 //понижение поддержки
 app.post("/suppdown/:id", urlensodedParser, (req, res) => {
-    ideas.ideaDown(req.params["id"])
+    ideas.ideaSDown(req.session.email, req.params["id"])
     .then(result => {
         res.end()
     })

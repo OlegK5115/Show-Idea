@@ -61,6 +61,12 @@ describe('Users and ideas', function() {
 
         after(function() {
             return users.clearUsers()
+            .then(() => {
+                users.getAllUsers()
+                .then(mass => {
+                    console.log(mass)
+                })
+            })
         })
     })
 })

@@ -43,10 +43,11 @@ describe('Ideas', function() {
 
       before(function() {
         return users.registration(user)
-        .then(() => {
+        .then((rezult) => {
+          user.id = rezult.id
           return ideas.saveIdea(idea, user.email)
-          .then((id) => {
-            idea.id = id
+          .then(rezult => {
+            idea.id = rezult.id
           })
         })
       })
@@ -82,41 +83,90 @@ describe('Ideas', function() {
         "content": "This is my first idea"
       }
       const idea2 = {
-        "heading": "test",
-        "content": "This is my first idea"
+        "heading": "second test",
+        "content": "This is my second idea"
       }
-      let id1, id2
       before(function() {
         return users.registration(user)
-        .then(() => {
+        .then((rezult) => {
+          user.id = rezult.id
           return ideas.saveIdea(idea1, user.email)
-          .then(id => {
-            id1 = id
+          .then(resOfIdea1 => {
+            idea1.id = resOfIdea1.id
             return ideas.saveIdea(idea2, user.email)
-            .then(id => {
-              id2 = id
+            .then(resOfIdea2 => {
+              idea2.id = resOfIdea2.id
             })
           })
         })
       })
 
+      
       it('Support idea', function() {
-        return ideas.ideaUp(id2)
-        .then(supp => {
-          supp.should.equal(1)
+        return ideas.ideaUp(user.email, idea1.id)
+        .then(result => {
+          result.status.should.be.equal(true)
+          result.support.should.be.equal(1)
         })
-        // Тест Up с одной идеей
+        //  Тест Up идеи (повысить поддержку)
       })
 
-      it('Unsupport idea', function() {
-        return ideas.ideaDown(id1)
-        .then(supp => {
-          supp.should.equal(-1)
+      it('Support idea again', function() {
+        return ideas.ideaUp(user.email, idea1.id)
+        .then(result => {
+          result.status.should.be.equal(true)
+          result.support.should.be.equal(0)
         })
+        //  Тест Up идеи (снять поддержку)
       })
-      // Тест down с одной идеей
+
+      it('Flip up idea support', function() {
+        return ideas.ideaDown(user.email, idea1.id)
+        .then(() => {
+          return ideas.ideaUp(user.email, idea1.id)
+          .then(result => {
+            result.status.should.be.equal(true)
+            result.support.should.be.equal(1)
+          })
+        })
+        //  Тест Up идеи (сменить поддержку)
+      })
+      
+      it('Unsupport idea', function() {
+        return ideas.ideaDown(user.email, idea1.id)
+        .then(result => {
+          result.status.should.be.equal(true)
+          result.support.should.be.equal(-1)
+        })
+        // Тест Down идеи (понизить поддержку)
+      })
+      
+      it('Unsupport idea again', function() {
+        return ideas.ideaDown(user.email, idea1.id)
+        .then(result => {
+          result.status.should.be.equal(true)
+          result.support.should.be.equal(0)
+        })
+        //  Тест Down идеи (снять поддержку)
+      })
+
+      it('Flip down idea support', function() {
+        return ideas.ideaUp(user.email, idea1.id)
+        .then(() => {
+          return ideas.ideaDown(user.email, idea1.id)
+          .then(result => {
+            result.status.should.be.equal(true)
+            result.support.should.be.equal(-1)
+          })
+        })
+        //  Тест Up идеи (сменить поддержку)
+      })
+
       after(function() {
         return ideas.clearIdeas()
+        .then(() => {
+          users.clearUsers()
+        })
       })
     })
 })
