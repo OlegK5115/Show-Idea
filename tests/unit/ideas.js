@@ -29,6 +29,8 @@ describe('Ideas', function() {
         // getideas с правильными параметрами
     })
 
+    // saveIdea, showIdea, getLenght
+
     context('There is one Idea', function() {
       const user = {
         name : "Alex",
@@ -160,6 +162,21 @@ describe('Ideas', function() {
           })
         })
         //  Тест Up идеи (сменить поддержку)
+      })
+
+      it('Getting list of Ideas', function(){
+        return ideas.getAllIdeas()
+          .then(ideas => {
+            ideas.should.be.an.instanceOf(Array).and.have.lengthOf(2)
+            ideas[0].should.have.property("_id", idea2.id)
+            ideas[0].should.have.property("heading", idea2.heading)
+            ideas[0].should.have.property("content", idea2.content)
+            ideas[0].should.have.property("support", 0)
+            ideas[1].should.have.property("_id", idea1.id)
+            ideas[1].should.have.property("heading", idea1.heading)
+            ideas[1].should.have.property("content", idea1.content)
+            ideas[1].should.have.property("support", -1)
+          })
       })
 
       after(function() {

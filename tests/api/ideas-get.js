@@ -14,7 +14,7 @@ describe('GET /article/:id', function() {
             return Promise.all([ideasDb.clearIdeas(), usersDb.clearUsers()])
             .then(() => {
                 app = require('../../main')
-                agent = supertest.agent(app)
+                agent = supertest.agent(app) // supertest(app)
                 return
             })
         })
@@ -28,7 +28,6 @@ describe('GET /article/:id', function() {
             .get('/article/AAAAAAAAAAAAAAAAAAAAAAAA')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .expect('Content-Type', /application\/json/)
             .expect(404)
             .then(res => {
                 res.body.should.have.property("status")
@@ -41,17 +40,21 @@ describe('GET /article/:id', function() {
         before(function() {
             return agent
             .post('/registration')
-            .send({name : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'})
+            .send({user : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'}) // почему объект нулевой
             .set('X-Request-With', 'XMLHttpRequest')
-            .set('Content-Type', 'aplication/json')
-            .expect(302)
+            .set('Accept', 'application/json')
+            .set('Content-Type', 'application/json')
+            .expect(200)
             .then(() => {
                 return agent
                 .post('/signin')
                 .send({email : 'dinosaur@example.com', password : 'rrrrrrrr'})
                 .set('X-Request-With', 'XMLHttpRequest')
-                .set('Content-Type', 'aplication/json')
-                .expect(302)
+                .set('Content-Type', 'application/json')
+                .expect(200)
+                .then(rezult => {
+                    
+                })
             })
         })
         /*При помощи Agent можно сделать запрос на сессию */
@@ -61,9 +64,7 @@ describe('GET /article/:id', function() {
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             .expect(404)
-            .then(res => {
-                
-            })
+            .then(res => {})
         })
         /* Уже должна быть создана сессия*/
         after(function() {
@@ -71,7 +72,7 @@ describe('GET /article/:id', function() {
             .get('/auth/logout')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .expect(302) 
+            .expect(200) 
             // 302 Found - при перезагрузке страницы (redirect)
         })
     })

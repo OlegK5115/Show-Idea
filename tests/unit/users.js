@@ -64,7 +64,7 @@ describe('Users and ideas', function() {
             .then(() => {
                 users.getAllUsers()
                 .then(mass => {
-                    console.log(mass)
+                    console.log("Users after clean", mass)
                 })
             })
         })

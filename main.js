@@ -17,12 +17,16 @@ if (config.mode !== "testing") {
     app.use(logger('dev'));
 }
 
-const urlensodedParser = require("body-parser").urlencoded({extended : false})
+const urlensodedParser = require("body-parser").urlencoded({extended : false}) // парсит форму
 
 const ideas = require('./lib/ideas')
 const users = require('./lib/users')
 
 let poss
+
+//app.use(require("body-parser").json({type : "application/json"}))
+
+app.use(express.json()) // парсит body как json объект
 
 app.use(express.static(path.join(__dirname, staticPath)))
 //app.use(cookieParser())
@@ -88,6 +92,10 @@ app.get('/signin', (req, res) => {
 
 //выход с аккаунта
 app.get('/auth/logout', (req, res) => {
+    const result = {
+        status : false,
+        deleteName : req.session.name
+    }
     delete req.session.name
     delete req.session.email
     delete req.session.login
@@ -95,7 +103,13 @@ app.get('/auth/logout', (req, res) => {
         //уничтожение текущей сессии.
         /*При использовании store.destroy(id, callback) идет
         удаление сессии внутри хранилища по id*/
-        res.redirect("/")
+        result.status = true
+        if(req.headers['content-type'] == 'application/json'){
+            res.json(result)
+        }
+        else {
+            res.redirect("/")
+        }
     })
 })
 
@@ -104,7 +118,6 @@ app.post('/registration', urlensodedParser, (req, res) => {
     users.registration({name : req.body.user, email : req.body.email, password : req.body.password})
     .then(rezult => {
         if(req.headers['content-type'] == 'application/json') {
-            console.log("Yes")
             res.json(rezult)
         }
         else {
@@ -123,6 +136,11 @@ app.post('/signin', urlensodedParser, (req, res) => {
     users.signin({email : req.body.email, password : req.body.password})
     .then(rezult => {
         if(req.headers['content-type'] == 'application/json') {
+            if(rezult.status){
+                req.session.login = true
+                req.session.name = rezult.user.name
+                req.session.email = rezult.user.email
+            }
             res.json(rezult)
         }
         else{
@@ -145,7 +163,7 @@ app.post('/auth/check', (req, res) => {
     if(req.session.login){
         rezult = {status : req.session.login, name : req.session.name}
     }
-    else{
+    else {
         rezult = {status : false}
     }
     res.json(rezult)
@@ -154,7 +172,6 @@ app.post('/auth/check', (req, res) => {
 // существует req.session.id
 //сохранение статьи
 app.post('/public', urlensodedParser , (req, res) => {
-    console.log(req.session.id)
     if(req.session.login){
         ideas.saveIdea({heading : req.body.heading, content :req.body.content}, req.session.email)
         .then(id => {
@@ -198,7 +215,7 @@ app.post("/suppup/:id", urlensodedParser, (req, res) => {
 
 //понижение поддержки
 app.post("/suppdown/:id", urlensodedParser, (req, res) => {
-    ideas.ideaSDown(req.session.email, req.params["id"])
+    ideas.ideaDown(req.session.email, req.params["id"])
     .then(result => {
         res.end()
     })
