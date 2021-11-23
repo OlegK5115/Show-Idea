@@ -8,9 +8,10 @@
   },
   "scripts": {
     "start": "NODE_ENV=production MODE=production DEBUG=Show-Idea node ./main.js",
-    "test": "npm run test-ideas; npm run test-users",
+    "test": "npm run test-ideas; npm run test-users; npm run test-support",
     "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
     "test-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
+    "test-support": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js",
     "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js"
   },
   "author": "Oleg",
