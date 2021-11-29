@@ -1,3 +1,5 @@
+const { MongoDBNamespace } = require('mongodb')
+const { mongo } = require('mongoose')
 const should = require('should')
 const ideas = require('../../lib/ideas')
 const users = require('../../lib/users')
@@ -38,6 +40,10 @@ describe('Ideas', function(){
     
     context('There is no Ideas', function() {
 
+        before(function(){
+            return users.addUser({name : "Virus", email : null, password : "iamvirus1"})
+        })
+
         it('Getting empty list of Ideas', function() {
             return ideas.getAllIdeas()
             .then(ideas => {
@@ -56,6 +62,24 @@ describe('Ideas', function(){
             })
         })
 
+        it('Adding idea with wrong user email (failure)', function() {
+            return ideas.saveIdea(idea, "wrong@example.com")
+            .then(rezult => {
+                rezult.should.have.property("status")
+                rezult.status.should.be.equal(false)
+                rezult.should.have.property("message")
+            })
+        })
+
+        it('Adding idea without user email (failure)', function() {
+            return ideas.saveIdea(idea, null)
+            .then(rezult => {
+                rezult.should.have.property("status")
+                rezult.status.should.be.equal(false)
+                rezult.should.have.property("message")
+            })
+        })
+
         it('Getting idea by id', function() {
             return ideas.showIdea(idea.id)
             .then(rezult => {
@@ -70,16 +94,28 @@ describe('Ideas', function(){
             })
         })
 
+        it('Getting idea by wrong id', function() {
+            return ideas.showIdea('aaaaaaaaaaaaaaaaaaaaaaaa')
+            .then(rezult => {
+                rezult.should.have.property("status")
+                rezult.status.should.be.equal(false)
+            })
+        })
+
+        it('Getting length of ideas', function() {
+            return ideas.getLength()
+            .then(length => {
+                length.should.be.equal(1)
+            })
+        })
+
         after(function() {
             return ideas.clearIdeas()
         })
 
     })
 
-    // saveIdea, showIdea, getLenght
-
     context('There is one Idea', function() {
-        
 
         before(function() {
             return ideas.saveIdea(idea, user.email)
