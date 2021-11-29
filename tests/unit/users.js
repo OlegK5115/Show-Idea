@@ -47,7 +47,7 @@ describe('Users', function() {
 
     context('There is no users', function() {
 
-        it('Regirstration null', function() {
+        it('Regirstration without data', function() {
             return users.registration(null)
             .then(result => {
                 result.should.have.property('status')
@@ -114,7 +114,7 @@ describe('Users', function() {
             })
         })
 
-        it('Getting error using wrong email', function() {
+        it('Trying find user using wrong email', function() {
             return users.getUserByEmail("wrong@example.com")
             .then(user => {
                 should(user).be.undefined
