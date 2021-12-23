@@ -36,7 +36,7 @@ describe('Support', function() {
         before(function() {
                 return users.registration(user)
                 .then((rezult) => {
-                    user.id = rezult.id
+                    user._id = rezult.id
                     return ideas.saveIdea(idea1, user.email)
                     .then(resOfIdea1 => {
                         idea1.id = resOfIdea1.id

@@ -23,7 +23,7 @@ describe('Users', function() {
         it('Getting empty list of users', function() {
             return users.getAllUsers()
             .then(users => {
-                users.should.be.an.instanceOf(Array).and.have.lengthOf(0)
+                should(users).be.an.instanceOf(Array).and.have.lengthOf(0)
             })
         })
 
@@ -37,10 +37,10 @@ describe('Users', function() {
         it('Trying signin user', function() {
             return users.signin({email : user.email, password : user.password})
             .then(result=> {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
-                result.message.should.be.equal("Can't find user")
+                should(result).have.property('status')
+                should(result.status).be.equal(false)
+                should(result).have.property('message')
+                should(result.message).be.equal("Can't find user")
             })
         })
 
@@ -95,23 +95,23 @@ describe('Users', function() {
         before(function() {
            return users.registration(user)
            .then(id => {
-               user.id = id
+               user._id = id
            })
         })
 
         it('Getting one user', function() {
             return users.getAllUsers()
-            .then(users => {
-                users.should.be.an.instanceOf(Array).and.have.lengthOf(1)
+            .then(resultUsers => {
+                should(resultUsers).be.an.instanceOf(Array).and.have.lengthOf(1)
             })
         })
 
         it('Getting one user using his email', function() {
             return users.getUserByEmail(user.email)
             .then(resultUser => {
-                resultUser.should.have.property("name", user.name)
-                resultUser.should.have.property("email", user.email)
-                resultUser.should.have.property("password", user.password)
+                should(resultUser).have.property("name", user.name)
+                should(resultUser).have.property("email", user.email)
+                should(resultUser).have.property("password", user.password)
             })
         })
 
