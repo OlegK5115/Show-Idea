@@ -1,19 +1,19 @@
 const should = require('should')
-const ideas = require('../../lib/ideas')
-const users = require('../../lib/users')
+import * as ideas from '../../lib/ideas'
+import * as users from '../../lib/users'
 
 describe('Support', function() {
-    const user = {
+    const user : users.User = {
         name : "Alex",
         email : "alexf1989@example.com",
         password : "Pitbuli32"
     }
 
-    const idea1 = {
+    const idea1 : ideas.Idea = {
         "heading": "test",
         "content": "This is my first idea"
     }
-    const idea2 = {
+    const idea2 : ideas.Idea = {
         "heading": "second test",
         "content": "This is my second idea"
     }

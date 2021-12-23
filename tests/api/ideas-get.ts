@@ -1,7 +1,7 @@
 const supertest = require('supertest')
 
-const ideasDb = require('../../lib/ideas')
-const usersDb = require('../../lib/users')
+import * as ideasDb from '../../lib/ideas'
+import * as usersDb from '../../lib/users'
 
 describe('GET /article/:id', function() {
     let app
@@ -14,7 +14,7 @@ describe('GET /article/:id', function() {
             return Promise.all([ideasDb.clearIdeas(), usersDb.clearUsers()])
             .then(() => {
                 app = require('../../main')
-                agent = supertest.agent(app) // supertest(app)
+                agent = supertest.agent(app, {}) // supertest(app)
                 return
             })
         })

@@ -1,8 +1,22 @@
-const mongodb = require("mongodb")
-const mongoUrl = "mongodb://localhost:27017/"
-const mongoParams = { useNewUrlParser: true, useUnifiedTopology: true }
+import * as mongodb from 'mongodb'
 
-const users = require('./users')
+const mongoUrl = "mongodb://localhost:27017/"
+
+import * as users from '../lib/users'
+
+export interface Idea {
+    heading : String,
+    content : String,
+    id ?: mongodb.ObjectId
+}
+
+interface Result {
+    status : Boolean,
+    message ?: String,
+    id ?: String,
+    support ?: number
+}
+
 
 /**
  * @type {mongodb.collection<any>}
@@ -11,30 +25,28 @@ let client
 let ideas
 
 
-function setup() {
+export function setup() {
     // проверять режим базы данных testing
 
     // !!!
 
-    return mongodb.MongoClient.connect(mongoUrl, mongoParams).then(result => {
+    return mongodb.MongoClient.connect(mongoUrl).then(result => {
         client = result
         ideas = client.db('DataBase').collection('ideas')
         return true
     })
 }
 
-exports.setup = setup
-
-function getLength() {
+export function getLength() {
     return ideas.count().then(result => {
         return result
     })
 }
 
-exports.getLength = getLength
-
-function saveIdea(newIdea, email) {
-    const result = {}
+export function saveIdea(newIdea, email) {
+    let result : Result = {
+        status : true
+    }
     if(!email){
         result.status = false
         result.message = "Wrong email"
@@ -67,35 +79,31 @@ function saveIdea(newIdea, email) {
     })
 }
 
-exports.saveIdea = saveIdea
-
-function getAllIdeas() {
+export function getAllIdeas() {
     return ideas
         .find()
         .sort( {support : -1} ) // сортирует массив по призаку (1 - по возрастанию, -1 - по убыванию)
         .toArray()
 }
 
-exports.getAllIdeas = getAllIdeas
-
-function showIdea(id) {
+export function showIdea(id) {
     return ideas.findOne({_id : new mongodb.ObjectId(id)})
     .then(result => {
         if(result == null){
             return {status : false}
         }
         else{
-            let name = result.heading
-            let content = result.content
+            let name : String = result.heading
+            let content : String = result.content
             return {status : true, heading : name, content : content, id : id}
         }
     })
 }
 
-exports.showIdea = showIdea
-
-function ideaUp(mail, ideaid) {
-    const result = {}
+export function ideaUp(mail, ideaid) {
+    let result : Result = {
+        status : true
+    }
     /* const session = client.startSession()
     session.withTransaction()
     .then(() => {}) */
@@ -138,7 +146,7 @@ function ideaUp(mail, ideaid) {
                 }
                 else {
                     result.status = false
-                    result.support = resultsBoolsAndIdea.support
+                    result.support = resultsBoolsAndIdea[0].support
                     return result
                     /*session.commitTransaction()
                     session.endSession() */
@@ -163,7 +171,7 @@ function ideaUp(mail, ideaid) {
                 }
                 else{
                     result.status = false
-                    result.support = resultsBoolAndIdea.support
+                    result.support = resultsBoolAndIdea[0].support
                     return result
                     /* session.commitTransaction()
                     session.endSession() */
@@ -173,10 +181,10 @@ function ideaUp(mail, ideaid) {
     })
 }
 
-exports.ideaUp = ideaUp
-
-function ideaDown(mail, ideaid) {
-    const result = {}
+export function ideaDown(mail, ideaid) {
+    let result : Result = {
+        status : true
+    }
     /*const session = client.startSession()
     session.withTransaction()
     .then(() => {}) */
@@ -218,7 +226,7 @@ function ideaDown(mail, ideaid) {
                 }
                 else {
                     result.status = false
-                    result.support = resultsBoolsAndIdea.support
+                    result.support = resultsBoolsAndIdea[0].support
                     return result
                     /* session.commitTransaction()
                     session.endSession() */
@@ -243,7 +251,7 @@ function ideaDown(mail, ideaid) {
                 }
                 else{
                     result.status = false
-                    result.support = resultsBoolAndIdea.support
+                    result.support = resultsBoolAndIdea[0].support
                     return result
                     /* session.commitTransaction()
                     session.endSession() */
@@ -253,10 +261,6 @@ function ideaDown(mail, ideaid) {
     })
 }
 
-exports.ideaDown = ideaDown
-
-function clearIdeas() {
+export function clearIdeas() {
     return ideas.deleteMany({})
 }
-
-exports.clearIdeas = clearIdeas

@@ -1,10 +1,11 @@
+import 'mocha'
 const should = require('should')
-const users = require('../../lib/users')
+import * as users from '../../lib/users'
 
 
 
 describe('Users', function() {
-    const user = {
+    const user : users.User = {
         name : "Alex",
         email : "alexf1989@example.com",
         password : "Pitbuli32"

@@ -1,3 +1,9 @@
+main.js
+lib/*.js
+tests/unit/*.js
+tests/api/*.js
+tests/api/users/auth.js
+
 # Logs
 logs
 *.log

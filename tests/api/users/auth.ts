@@ -1,8 +1,7 @@
 const supertest = require('supertest')
 
-const ideasDb = require('../../../lib/ideas')
-const usersDb = require('../../../lib/users')
-const { settings } = require('../../../main')
+import * as ideasDb from '../../../lib/ideas'
+import * as usersDb from '../../../lib/users'
 
 describe('user reqistration', function() {
 
@@ -17,7 +16,7 @@ describe('user reqistration', function() {
         })
         .then(() => {
             app = require('../../../main')
-            agent = supertest.agent(app)
+            agent = supertest.agent(app, {})
             return
         })
     })

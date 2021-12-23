@@ -12,7 +12,8 @@
     "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
     "test-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
     "test-support": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js",
-    "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js"
+    "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js",
+    "build": "tsc main.ts lib/*.ts tests/unit/*.ts tests/api/*.ts tests/api/users/auth.ts"
   },
   "author": "Oleg",
   "license": "ISC",
@@ -30,8 +31,11 @@
     "supertest": "^6.1.6"
   },
   "devDependencies": {
+    "@types/mocha": "^9.0.0",
+    "@types/mongodb": "^4.0.7",
     "jasmine-node": "^3.0.0",
     "mocha": "^9.0.3",
-    "nodemon": "^2.0.12"
+    "nodemon": "^2.0.12",
+    "typescript": "^4.5.2"
   }
 }

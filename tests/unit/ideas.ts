@@ -1,20 +1,19 @@
-const { MongoDBNamespace } = require('mongodb')
-const { mongo } = require('mongoose')
+import * as MongoDBNamespace from 'mongodb'
 const should = require('should')
-const ideas = require('../../lib/ideas')
-const users = require('../../lib/users')
+import * as ideas from '../../lib/ideas'
+import * as users from '../../lib/users'
 
 // запуск тестов через npm test
 
 describe('Ideas', function(){
 
-    const user = {
+    const user : users.User = {
         name : "Alex",
         email : "alexf1989@example.com",
         password : "Pitbuli32"
     } 
 
-    const idea = {
+    const idea : ideas.Idea = {
         "heading": "test",
         "content": "This is my first idea"
     }
