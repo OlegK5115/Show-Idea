@@ -29,7 +29,7 @@ describe('Ideas', function(){
                     .then(() => {
                         return users.registration(user)
                         .then((rezult) => {
-                            user.id = rezult.id
+                            user._id = rezult.userid
                         })
                     })
                 })

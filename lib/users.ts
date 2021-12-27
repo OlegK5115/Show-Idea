@@ -6,9 +6,9 @@ export interface User {
     name : String,
     email : String,
     password : String,
-    suppIdeas ?: Array<number>,
-    unsuppIdeas ?: Array<number>,
-    id ?: mongodb.ObjectId
+    suppIdeas ?: Array<mongodb.ObjectId>,
+    unsuppIdeas ?: Array<mongodb.ObjectId>,
+    _id ?: mongodb.ObjectId
 }
 
 interface Result {
@@ -16,8 +16,7 @@ interface Result {
     message : String,
 }
 
-
-let users : mongodb.Collection<mongodb.Document>
+let users : mongodb.Collection<User>
 
 export function setup() : Promise<Boolean> {
     // проверять режим базы данных testing
@@ -33,7 +32,7 @@ export function setup() : Promise<Boolean> {
     })
 }
 
-export function registration(data) : Promise<Result> {
+export function registration(data) : Promise<ResultWithID> | Promise<Result> {
     let rezult : Result = {
         status : true,
         message : ""
@@ -87,26 +86,22 @@ export function signin(data) : Promise<ResultWithUser> {
         message : "",
         user : null
     }
+
     if(data.email == "" || data.password == ""){
         rezult.status = false
         rezult.message = "Wrong email or password"
     }
     
     return users.findOne({email : data.email, password : data.password})
-    .then(result => {
-        if(!result){
+    .then(user => {
+        if(!user){
             rezult.status = false
             rezult.message = "Can't find user"
         }
         else{
             rezult.status = true
-            rezult.user.email = result.email
-            rezult.user.id = result._id
-            rezult.user.name = result.name
-            rezult.user.password = result.password
-            rezult.user.suppIdeas = result.suppIdeas
-            rezult.user.unsuppIdeas = result.unsuppIdeas
             rezult.message = "Signin is successful"
+            rezult.user = user
         }
         return rezult
     })
@@ -175,17 +170,6 @@ export function getAllUsers() : Promise<User[]> {
 
 export function getUserByEmail(mail) : Promise<User> {
     return users.findOne({email : mail})
-    .then(result => {
-        let user : User = {
-            id : result._id,
-            email : result.email,
-            name : result.name,
-            password : result.password,
-            suppIdeas : result.suppIdeas,
-            unsuppIdeas : result.unsuppIdeas
-        }
-        return user
-    })
 }
 
 export function clearUsers() {
