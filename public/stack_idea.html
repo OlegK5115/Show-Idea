@@ -37,9 +37,8 @@
                 }
                 else{
                     let article = ajax.response
-                    console.log(article)
-                    document.getElementById("heading").innerHTML = article.heading
-                    document.getElementById("content").innerHTML = article.content
+                    document.getElementById("heading").innerHTML = article.idea.heading
+                    document.getElementById("content").innerHTML = article.idea.content
                 }
             }
             ajax.open("GET", url)

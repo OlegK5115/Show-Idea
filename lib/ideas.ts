@@ -7,13 +7,14 @@ import * as users from '../lib/users'
 export interface Idea {
     heading : String,
     content : String,
-    id ?: mongodb.ObjectId
+    support ?: number,
+    authorId ?: mongodb.ObjectId,
+    _id ?: mongodb.ObjectId
 }
 
 interface Result {
     status : Boolean,
     message ?: String,
-    id ?: String,
     support ?: number
 }
 
@@ -21,11 +22,11 @@ interface Result {
 /**
  * @type {mongodb.collection<any>}
  */
-let client
-let ideas
+let client : mongodb.MongoClient
+let ideas : mongodb.Collection<Idea>
 
 
-export function setup() {
+export function setup() : Promise<Boolean> {
     // проверять режим базы данных testing
 
     // !!!
@@ -37,15 +38,20 @@ export function setup() {
     })
 }
 
-export function getLength() {
-    return ideas.count().then(result => {
+export function getLength() : Promise<number> {
+    return ideas.countDocuments().then(result => {
         return result
     })
 }
 
-export function saveIdea(newIdea, email) {
-    let result : Result = {
-        status : true
+type ResultWithID = Result & {
+    ideaId : mongodb.ObjectId
+}
+
+export function saveIdea(newIdea, email) : Promise<ResultWithID> | Promise<Result> {
+    let result : ResultWithID = {
+        status : true,
+        ideaId : null
     }
     if(!email){
         result.status = false
@@ -73,7 +79,7 @@ export function saveIdea(newIdea, email) {
         .then(resIdea => {
             result.message = "Added idea"
             result.status = true
-            result.id = resIdea.insertedId
+            result.ideaId = resIdea.insertedId
             return result
         })
     })
@@ -86,23 +92,36 @@ export function getAllIdeas() {
         .toArray()
 }
 
-export function showIdea(id) {
+type ResultWithIdea = Result & {
+    idea : Idea
+}
+
+export function showIdea(id : string) : Promise<ResultWithIdea> | Promise<Result> {
+    let result : ResultWithIdea = {
+        status : true,
+        idea : null
+    }
     return ideas.findOne({_id : new mongodb.ObjectId(id)})
-    .then(result => {
-        if(result == null){
-            return {status : false}
+    .then(resultIdea => {
+        if(resultIdea == null){
+            result.status = false
+            return result
         }
-        else{
-            let name : String = result.heading
-            let content : String = result.content
-            return {status : true, heading : name, content : content, id : id}
+        else {
+            result.idea = resultIdea
+            return result
         }
     })
 }
 
-export function ideaUp(mail, ideaid) {
-    let result : Result = {
-        status : true
+type ResultWithSupport = Result & {
+    support : number
+}
+
+export function ideaUp(mail, ideaid) : Promise<ResultWithSupport> {
+    let result : ResultWithSupport = {
+        status : true,
+        support : null
     }
     /* const session = client.startSession()
     session.withTransaction()
@@ -146,7 +165,7 @@ export function ideaUp(mail, ideaid) {
                 }
                 else {
                     result.status = false
-                    result.support = resultsBoolsAndIdea[0].support
+                    result.support = resultsBoolsAndIdea[0].value.support
                     return result
                     /*session.commitTransaction()
                     session.endSession() */
@@ -171,7 +190,7 @@ export function ideaUp(mail, ideaid) {
                 }
                 else{
                     result.status = false
-                    result.support = resultsBoolAndIdea[0].support
+                    result.support = resultsBoolAndIdea[0].value.support
                     return result
                     /* session.commitTransaction()
                     session.endSession() */
@@ -181,9 +200,10 @@ export function ideaUp(mail, ideaid) {
     })
 }
 
-export function ideaDown(mail, ideaid) {
-    let result : Result = {
-        status : true
+export function ideaDown(mail, ideaid) : Promise<ResultWithSupport> {
+    let result : ResultWithSupport = {
+        status : true,
+        support : null
     }
     /*const session = client.startSession()
     session.withTransaction()
@@ -226,7 +246,7 @@ export function ideaDown(mail, ideaid) {
                 }
                 else {
                     result.status = false
-                    result.support = resultsBoolsAndIdea[0].support
+                    result.support = resultsBoolsAndIdea[0].value.support
                     return result
                     /* session.commitTransaction()
                     session.endSession() */
@@ -251,7 +271,7 @@ export function ideaDown(mail, ideaid) {
                 }
                 else{
                     result.status = false
-                    result.support = resultsBoolAndIdea[0].support
+                    result.support = resultsBoolAndIdea[0].value.support
                     return result
                     /* session.commitTransaction()
                     session.endSession() */

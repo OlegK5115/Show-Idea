@@ -39,10 +39,10 @@ describe('Support', function() {
                     user._id = rezult.id
                     return ideas.saveIdea(idea1, user.email)
                     .then(resOfIdea1 => {
-                        idea1.id = resOfIdea1.id
+                        idea1._id = resOfIdea1.ideaId
                         return ideas.saveIdea(idea2, user.email)
                         .then(resOfIdea2 => {
-                        idea2.id = resOfIdea2.id
+                        idea2._id = resOfIdea2.ideaId
                         })
                     })
                 })
@@ -50,60 +50,60 @@ describe('Support', function() {
         
         
         it('Support idea', function() {
-            return ideas.ideaUp(user.email, idea1.id)
+            return ideas.ideaUp(user.email, idea1._id)
             .then(result => {
-                result.status.should.be.equal(true)
-                result.support.should.be.equal(1)
+                should(result.status).be.equal(true)
+                should(result.support).be.equal(1)
             })
             //  Тест Up идеи (повысить поддержку)
         })
     
         it('Support idea again', function() {
-            return ideas.ideaUp(user.email, idea1.id)
+            return ideas.ideaUp(user.email, idea1._id)
             .then(result => {
-                result.status.should.be.equal(true)
-                result.support.should.be.equal(0)
+                should(result.status).be.equal(true)
+                should(result.support).be.equal(0)
             })
             //  Тест Up идеи (снять поддержку)
         })
     
         it('Flip up idea support', function() {
-            return ideas.ideaDown(user.email, idea1.id)
+            return ideas.ideaDown(user.email, idea1._id)
             .then(() => {
-                return ideas.ideaUp(user.email, idea1.id)
+                return ideas.ideaUp(user.email, idea1._id)
                 .then(result => {
-                    result.status.should.be.equal(true)
-                    result.support.should.be.equal(1)
+                    should(result.status).be.equal(true)
+                    should(result.support).be.equal(1)
                 })
             })
             //  Тест Up идеи (сменить поддержку)
         })
         
         it('Unsupport idea', function() {
-            return ideas.ideaDown(user.email, idea1.id)
+            return ideas.ideaDown(user.email, idea1._id)
             .then(result => {
-                result.status.should.be.equal(true)
-                result.support.should.be.equal(-1)
+                should(result.status).be.equal(true)
+                should(result.support).be.equal(-1)
             })
             // Тест Down идеи (понизить поддержку)
         })
         
         it('Unsupport idea again', function() {
-            return ideas.ideaDown(user.email, idea1.id)
+            return ideas.ideaDown(user.email, idea1._id)
             .then(result => {
-                result.status.should.be.equal(true)
-                result.support.should.be.equal(0)
+                should(result.status).be.equal(true)
+                should(result.support).be.equal(0)
             })
             //  Тест Down идеи (снять поддержку)
         })
     
         it('Flip down idea support', function() {
-            return ideas.ideaUp(user.email, idea1.id)
+            return ideas.ideaUp(user.email, idea1._id)
             .then(() => {
-                return ideas.ideaDown(user.email, idea1.id)
+                return ideas.ideaDown(user.email, idea1._id)
                 .then(result => {
-                    result.status.should.be.equal(true)
-                    result.support.should.be.equal(-1)
+                    should(result.status).be.equal(true)
+                    should(result.support).be.equal(-1)
                 })
             })
             //  Тест Up идеи (сменить поддержку)
@@ -112,15 +112,15 @@ describe('Support', function() {
         it('Getting list of Ideas', function(){
             return ideas.getAllIdeas()
             .then(ideas => {
-                ideas.should.be.an.instanceOf(Array).and.have.lengthOf(2)
-                ideas[0].should.have.property("_id", idea2.id)
-                ideas[0].should.have.property("heading", idea2.heading)
-                ideas[0].should.have.property("content", idea2.content)
-                ideas[0].should.have.property("support", 0)
-                ideas[1].should.have.property("_id", idea1.id)
-                ideas[1].should.have.property("heading", idea1.heading)
-                ideas[1].should.have.property("content", idea1.content)
-                ideas[1].should.have.property("support", -1)
+                should(ideas).be.an.instanceOf(Array).and.have.lengthOf(2)
+                should(ideas[0]).have.property("_id", idea2._id)
+                should(ideas[0]).have.property("heading", idea2.heading)
+                should(ideas[0]).have.property("content", idea2.content)
+                should(ideas[0]).have.property("support", 0)
+                should(ideas[1]).have.property("_id", idea1._id)
+                should(ideas[1]).have.property("heading", idea1.heading)
+                should(ideas[1]).have.property("content", idea1.content)
+                should(ideas[1]).have.property("support", -1)
             })
         })
     

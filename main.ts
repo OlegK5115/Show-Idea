@@ -22,7 +22,7 @@ const urlensodedParser = require("body-parser").urlencoded({extended : false}) /
 const ideas = require('./lib/ideas')
 const users = require('./lib/users')
 
-let poss
+let poss : number
 
 //app.use(require("body-parser").json({type : "application/json"}))
 
@@ -48,7 +48,7 @@ app.use(session({
 аккаунт использовать другой браузер */
 
 Promise.all([ideas.setup(), users.setup()]).then(statuses => {
-    let success = true
+    let success : Boolean = true
     for (let status in statuses) {
         if (!status) {
             success = false
