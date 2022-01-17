@@ -16,29 +16,21 @@ function checkAuth() {
     ajax.responseType = "json"
     ajax.onload = function(){
         login = ajax.response.status
-        if(this.status != 200){
-            console.log(this.status + ":" + this.statusText)
-        }
-        else if(ajax.response.status){
+        if(login){
             signin.innerHTML = ajax.response.name
             register.innerHTML = "log out"
             register.setAttribute("href", "/auth/logout")
             public.style.pointerEvent = true
         }
     }
-    ajax.open("POST", "/auth/check")
+    ajax.open("GET", "/auth/check")
     ajax.send()
 }
 
 function getChet(){
     const ajax = new XMLHttpRequest()
     ajax.onload = function(){
-        if(this.status != 200){
-            console.log(this.status + ":" + this.statusText)
-        }
-        else{
-            chet = parseInt(ajax.response)
-        }
+        chet = parseInt(ajax.response)
     }
     ajax.open("POST", "/poss")
     ajax.send()
@@ -55,12 +47,7 @@ function suppUp(ident){
     let saveID = document.querySelectorAll("input.saveID")
     if(login){
         ajax.onload = function(){
-            if(this.status != 200){
-                console.log(this.status + ":" + this.statusText)
-            }
-            else{
-                getLink(beg.toString(), end.toString())
-            }
+            getLink(beg.toString(), end.toString())
         }
         ajax.open("POST", "/suppup/" + saveID[ident].getAttribute("value"))
         ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
@@ -72,12 +59,7 @@ function suppDown(ident){
     let saveID = document.querySelectorAll("input.saveID")
     if(login){
         ajax.onload = function(){
-            if(this.status != 200){
-                console.log(this.status + ":" + this.statusText)
-            }
-            else{
-                getLink(beg.toString(), end.toString())
-            }
+            getLink(beg.toString(), end.toString())
         }
         ajax.open("POST", "/suppdown/" + saveID[ident].getAttribute("value"))
         ajax.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
