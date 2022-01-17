@@ -1,13 +1,13 @@
 const express = require('express')
 const app = express()
-const port = 2005
+
+const config = require('config')
+const port : number = config.port
 
 const redis = require('redis')
 //const cookieParser = require('cookie-parser')
 const session = require('express-session')
 const RedisStore = require('connect-redis')(session)
-
-const config = require('config')
 
 const staticPath = 'public'
 const path = require('path')
@@ -33,7 +33,9 @@ app.use(express.static(path.join(__dirname, staticPath)))
 app.use(session({
     secret : "qsxcdecftygbnjimko",
     store : new RedisStore({
-        client : redis.createClient(), // creating a new client database connection
+        client : redis.createClient({
+            url : "redis://" + config.redis.host + "/" + config.redis.index // отвечает за то, под каким индексом базы данных произойдет регистрация сессии
+        }), // creating a new client database connection
         prefix : 'show-idea:session:' // signature for sessions
     }),
     resave : true,
@@ -158,7 +160,7 @@ app.post('/signin', urlensodedParser, (req, res) => {
 })
 
 //проверка входа пользователя
-app.post('/auth/check', (req, res) => {
+app.get('/auth/check', (req, res) => {
     let rezult = {}
     if(req.session.login){
         rezult = {status : req.session.login, name : req.session.name}

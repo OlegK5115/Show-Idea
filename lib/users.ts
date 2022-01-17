@@ -1,6 +1,7 @@
-import * as mongodb from 'mongodb'
+import * as config from 'config'
 
-const mongoUrl = "mongodb://localhost:27017/"
+import * as mongodb from 'mongodb'
+const mongoUrl = "mongodb://" + config.mongodb.host + ':' + config.mongodb.port
 
 export interface User {
     name : String,
@@ -19,12 +20,9 @@ interface Result {
 let users : mongodb.Collection<User>
 
 export function setup() : Promise<Boolean> {
-    // проверять режим базы данных testing
-
-    // !!!
 
     return mongodb.MongoClient.connect(mongoUrl).then(client => {
-        users = client.db('DataBase').collection('users')
+        users = client.db(config.mongodb.name).collection('users')
         return true
     })
     .catch(() => {

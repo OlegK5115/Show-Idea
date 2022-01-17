@@ -72,7 +72,7 @@ describe('GET /article/:id', function() {
             .get('/auth/logout')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .expect(200) 
+            .expect(200)
             // 302 Found - при перезагрузке страницы (redirect)
         })
     })

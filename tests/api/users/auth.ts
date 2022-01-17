@@ -1,5 +1,7 @@
 const supertest = require('supertest')
 
+const should = require("should")
+
 import * as ideasDb from '../../../lib/ideas'
 import * as usersDb from '../../../lib/users'
 
@@ -25,12 +27,12 @@ describe('user reqistration', function() {
 
         it('Check authorization anonimous user', function() {
             return agent
-            .post('/auth/check')
+            .get('/auth/check')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             .then(rezult => {
-                rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(false)
+                should(rezult.body).have.property('status')
+                should(rezult.body.status).equal(false)
             })
         })
 
@@ -75,7 +77,7 @@ describe('user reqistration', function() {
 
         it('Check authorization user', function() {
             return agent
-            .post('/auth/check')
+            .get('/auth/check')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             .then(rezult => {

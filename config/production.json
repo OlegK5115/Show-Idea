@@ -1,0 +1,13 @@
+{
+    "mode" : "production",
+    "mongodb": {
+        "host": "localhost",
+        "port": 27017,
+        "name": "ShowIdea-production"
+    },
+    "redis": {
+        "host" : "localhost",
+        "index" : 2
+    },
+    "port": 2005
+}

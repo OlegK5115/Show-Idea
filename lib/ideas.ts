@@ -1,6 +1,7 @@
-import * as mongodb from 'mongodb'
+import * as config from 'config'
 
-const mongoUrl = "mongodb://localhost:27017/"
+import * as mongodb from 'mongodb'
+const mongoUrl = "mongodb://" + config.mongodb.host + ':' + config.mongodb.port
 
 import * as users from '../lib/users'
 
@@ -27,13 +28,9 @@ let ideas : mongodb.Collection<Idea>
 
 
 export function setup() : Promise<Boolean> {
-    // проверять режим базы данных testing
 
-    // !!!
-
-    return mongodb.MongoClient.connect(mongoUrl).then(result => {
-        client = result
-        ideas = client.db('DataBase').collection('ideas')
+    return mongodb.MongoClient.connect(mongoUrl).then(client => {
+        ideas = client.db(config.mongodb.name).collection('ideas')
         return true
     })
 }
