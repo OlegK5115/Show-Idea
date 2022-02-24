@@ -44,8 +44,8 @@ describe('user reqistration', function() {
             .set('Content-Type', 'application/json')
             .then(rezult => {
                 rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(true) // equal() - равенство с указанным знач.
-                rezult.body.should.have.property('message') // property() - название поля
+                rezult.body.status.should.equal(true) 
+                rezult.body.should.have.property('message')
             })
         })
 

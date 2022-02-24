@@ -21,6 +21,7 @@ const urlensodedParser = require("body-parser").urlencoded({extended : false}) /
 
 const ideas = require('./lib/ideas')
 const users = require('./lib/users')
+const support = require('./lib/support')
 
 let poss : number
 
@@ -49,7 +50,7 @@ app.use(session({
 /* Сессия создается при входе на сайт в браузере. При входе на другой
 аккаунт использовать другой браузер */
 
-Promise.all([ideas.setup(), users.setup()]).then(statuses => {
+Promise.all([ideas.setup(), users.setup(), support.setup()]).then(statuses => {
     let success : Boolean = true
     for (let status in statuses) {
         if (!status) {
@@ -209,7 +210,7 @@ app.get("/article/:id", (req, res) => {
 
 //повышение поддержки
 app.post("/suppup/:id", urlensodedParser, (req, res) => {
-    ideas.ideaUp(req.session.email, req.params["id"])
+    support.ideaUp(req.session.email, req.params["id"])
     .then(result => {
         res.end()
     })
@@ -217,7 +218,7 @@ app.post("/suppup/:id", urlensodedParser, (req, res) => {
 
 //понижение поддержки
 app.post("/suppdown/:id", urlensodedParser, (req, res) => {
-    ideas.ideaDown(req.session.email, req.params["id"])
+    support.ideaDown(req.session.email, req.params["id"])
     .then(result => {
         res.end()
     })

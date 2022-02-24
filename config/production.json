@@ -1,9 +1,9 @@
 {
     "mode" : "production",
-    "mongodb": {
-        "host": "localhost",
-        "port": 27017,
-        "name": "ShowIdea-production"
+    "neo4j" : {
+        "host" : "localhost",
+        "login" : "neo4j",
+        "password" : "CoolAny35"
     },
     "redis": {
         "host" : "localhost",

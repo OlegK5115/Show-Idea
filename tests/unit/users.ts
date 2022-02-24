@@ -51,37 +51,37 @@ describe('Users', function() {
         it('Regirstration without data', function() {
             return users.registration(null)
             .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
+                should(result).have.property('status')
+                should(result.status).be.equal(false)
+                should(result).have.property('message')
             })
         })
 
         it('Regirstration user without name', function() {
             return users.registration({email : user.email, password : user.password})
             .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
+                should(result).have.property('status')
+                should(result.status).be.equal(false)
+                should(result).have.property('message')
             })
         })
 
         it('Regirstration user', function() {
             return users.registration(user)
             .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(true)
-                result.should.have.property('message')
-                result.should.have.property('userid')
+                should(result).have.property('status')
+                should(result.status).be.equal(true)
+                should(result).have.property('message')
+                should(result).have.property('userid')
             })
         })
 
         it('Regirstration user again', function() {
             return users.registration(user)
             .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
+                should(result).have.property('status')
+                should(result.status).be.equal(false)
+                should(result).have.property('message')
             })
         })
 
@@ -94,8 +94,8 @@ describe('Users', function() {
 
         before(function() {
            return users.registration(user)
-           .then(id => {
-               user._id = id
+           .then(result => {
+               user._id = result.userid
            })
         })
 

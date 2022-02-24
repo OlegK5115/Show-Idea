@@ -12,7 +12,11 @@
     "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
     "test-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
     "test-support": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js",
-    "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js",
+    "test-api": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/api/ideas-get.js ./tests/api/users/auth.js",
+    "test-unit-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js",
+    "test-unit-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js",
+    "test-unit-support": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js",
+    "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea ts-node-dev ./main.ts",
     "build": "tsc main.ts lib/*.ts tests/unit/*.ts tests/api/*.ts tests/api/users/auth.ts"
   },
   "author": "Oleg",
@@ -25,6 +29,7 @@
     "express-session": "^1.17.2",
     "mongodb": "^4.0.1",
     "morgan": "^1.10.0",
+    "neo4j-driver": "^4.4.1",
     "redis": "^3.1.2"
   },
   "devDependencies": {
@@ -35,6 +40,8 @@
     "nodemon": "^2.0.12",
     "should": "^13.2.3",
     "supertest": "^6.1.6",
+    "ts-node": "^10.4.0",
+    "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.2"
   }
 }

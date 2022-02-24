@@ -57,7 +57,6 @@ describe('GET /article/:id', function() {
                 })
             })
         })
-        /*При помощи Agent можно сделать запрос на сессию */
         it('Idea not found', function() {
             return agent
             .get('/article/AAAAAAAAAAAAAAAAAAAAAAAA')
@@ -66,14 +65,12 @@ describe('GET /article/:id', function() {
             .expect(404)
             .then(res => {})
         })
-        /* Уже должна быть создана сессия*/
         after(function() {
             return agent
             .get('/auth/logout')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             .expect(200)
-            // 302 Found - при перезагрузке страницы (redirect)
         })
     })
 

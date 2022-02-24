@@ -1,9 +1,7 @@
-import * as MongoDBNamespace from 'mongodb'
 const should = require('should')
 import * as ideas from '../../lib/ideas'
 import * as users from '../../lib/users'
 
-// запуск тестов через npm test
 
 describe('Ideas', function(){
 

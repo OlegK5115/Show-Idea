@@ -1,16 +1,20 @@
 import * as config from 'config'
 
-import * as mongodb from 'mongodb'
-const mongoUrl = "mongodb://" + config.mongodb.host + ':' + config.mongodb.port
+import * as neo4j from 'neo4j-driver'
+const neo4jUrl : string = 'neo4j://' + config.neo4j.host
+const driver = neo4j.driver(neo4jUrl, neo4j.auth.basic(config.neo4j.login, config.neo4j.password))
 
 import * as users from '../lib/users'
+import * as support from '../lib/support'
+
+const modeLabel = config.mode[0].toUpperCase() + config.mode.slice(1)
+
 
 export interface Idea {
     heading : String,
     content : String,
-    support ?: number,
-    authorId ?: mongodb.ObjectId,
-    _id ?: mongodb.ObjectId
+    _id ?: number,
+    support ?: number
 }
 
 interface Result {
@@ -20,29 +24,29 @@ interface Result {
 }
 
 
-/**
- * @type {mongodb.collection<any>}
- */
-let client : mongodb.MongoClient
-let ideas : mongodb.Collection<Idea>
-
-
 export function setup() : Promise<Boolean> {
-
-    return mongodb.MongoClient.connect(mongoUrl).then(client => {
-        ideas = client.db(config.mongodb.name).collection('ideas')
-        return true
+    const session = driver.session()
+    return Promise.resolve(!!session).then(res => {
+        return session.close()
+        .then(() => {
+            return !!res
+        })
     })
 }
 
 export function getLength() : Promise<number> {
-    return ideas.countDocuments().then(result => {
-        return result
+    const session = driver.session()
+    return session.run("match(i:Idea:" + modeLabel + ") return i")
+    .then(resIdeas => {
+        return session.close()
+        .then(() => {
+            return resIdeas.records.length
+        })
     })
 }
 
 type ResultWithID = Result & {
-    ideaId : mongodb.ObjectId
+    ideaId : number
 }
 
 export function saveIdea(newIdea, email) : Promise<ResultWithID> | Promise<Result> {
@@ -64,220 +68,108 @@ export function saveIdea(newIdea, email) : Promise<ResultWithID> | Promise<Resul
             return result
         }) 
     }
+    const session = driver.session()
     return users.getUserByEmail(email).then(user => {
-        if(!user) {
+        if(user == null) {
             result.message = "Wrong email"
             result.status = false
             return result
         }
         const authorId = user._id
-        const idea = {heading : newIdea.heading, content : newIdea.content, support : 0, authorId : authorId}
-        return ideas.insertOne(idea)
+        const idea = "{heading : \"" + newIdea.heading + "\", content : \"" + newIdea.content + "\"}"
+        return session.run("match(u:User:" + modeLabel + ") where id(u) = " + authorId + "\n"+
+        "create (i:Idea:" + modeLabel + idea + ")\n"+
+        "create(u)-[:CREATE]->(i) return i")
         .then(resIdea => {
-            result.message = "Added idea"
+            result.message = "Added Idea"
             result.status = true
-            result.ideaId = resIdea.insertedId
-            return result
+            result.ideaId = resIdea.records[0].get(0).identity.low
+            return session.close()
+            .then(() => {
+                return result
+            })
         })
     })
 }
 
 export function getAllIdeas() {
-    return ideas
-        .find()
-        .sort( {support : -1} ) // сортирует массив по призаку (1 - по возрастанию, -1 - по убыванию)
-        .toArray()
+    const session = driver.session()
+    return session.run("match (i:" + modeLabel + ":Idea) return i")
+    .then(result => {
+        const ideas = []
+
+        result.records.forEach(record => {
+            ideas.push(record.get(0).properties)
+            const id = record.get(0).identity.low
+            ideas[ideas.length-1]._id = id
+        })
+
+        return Promise.all(ideas.map((idea) => {
+            return support.getSupport(idea._id)
+            .then(sup => {
+                idea.support = sup
+                return session.close()
+                .then(() => {
+                    return idea
+                })
+            })
+        }))
+    })
+    .then(ideas => {
+        return ideas.sort((idea1, idea2) => {
+            if(idea1.support > idea2.support){
+                return -1
+            }
+            else if(idea1.support < idea2.support){
+                return 1
+            }
+            return 0
+        })
+    })
 }
 
 type ResultWithIdea = Result & {
     idea : Idea
 }
 
-export function showIdea(id : string) : Promise<ResultWithIdea> | Promise<Result> {
+export function showIdea(id) : Promise<ResultWithIdea> {
     let result : ResultWithIdea = {
         status : true,
         idea : null
     }
-    return ideas.findOne({_id : new mongodb.ObjectId(id)})
-    .then(resultIdea => {
-        if(resultIdea == null){
-            result.status = false
-            return result
-        }
-        else {
-            result.idea = resultIdea
-            return result
-        }
-    })
-}
-
-type ResultWithSupport = Result & {
-    support : number
-}
-
-export function ideaUp(mail, ideaid) : Promise<ResultWithSupport> {
-    let result : ResultWithSupport = {
-        status : true,
-        support : null
+    if(isNaN(Number(id))){
+        result.status = false
+        return Promise.resolve(result).then(res => {
+            return res
+        })
     }
-    /* const session = client.startSession()
-    session.withTransaction()
-    .then(() => {}) */
-    return Promise.all([users.findIdeasSupport(mail, ideaid),
-        users.findIdeasUnsupport(mail, ideaid)])
-    .then(rezults => {
-        if(!rezults[0] && !rezults[1]){
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : 1}}),
-                users.pushSupport(mail, ideaid)
-            ]).then(() => {
-                return ideas.findOne(
-                    {_id : new mongodb.ObjectId(ideaid)})
-                .then(idea => {
-                    result.status = true
-                    result.support = idea.support
-                    return result
-                    /*session.commitTransaction()
-                    session.endSession() */
-                })
-            })
-        }
-        else if(rezults[1]){
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : 2}}),
-                users.pullUnsupport(mail, ideaid),
-                users.pushSupport(mail, ideaid)
-            ]).then(resultsBoolsAndIdea => {
-                if(resultsBoolsAndIdea[1] && resultsBoolsAndIdea[2]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /*session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else {
+    else{
+        const session = driver.session()
+        return session.run("match (i:Idea:" + modeLabel + ") where id(i) = " + Number(id) + " return i")
+        .then(resIdea => {
+            return session.close()
+            .then(() => {
+                if(resIdea.records.length == 0){
                     result.status = false
-                    result.support = resultsBoolsAndIdea[0].value.support
                     return result
-                    /*session.commitTransaction()
-                    session.endSession() */
-                }
-            })
-        }
-        else {
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : -1}}),
-                users.pullSupport(mail, ideaid)
-            ]).then(resultsBoolAndIdea => {
-                if(resultsBoolAndIdea[1]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /*session.commitTransaction()
-                        session.endSession() */
-                    })
                 }
                 else{
-                    result.status = false
-                    result.support = resultsBoolAndIdea[0].value.support
+                    result.idea = resIdea.records[0].get(0).properties
+                    result.idea._id = resIdea.records[0].get(0).identity.low
                     return result
-                    /* session.commitTransaction()
-                    session.endSession() */
                 }
             })
-        }
-    })
-}
-
-export function ideaDown(mail, ideaid) : Promise<ResultWithSupport> {
-    let result : ResultWithSupport = {
-        status : true,
-        support : null
+        })
     }
-    /*const session = client.startSession()
-    session.withTransaction()
-    .then(() => {}) */
-    return Promise.all([users.findIdeasSupport(mail, ideaid),
-        users.findIdeasUnsupport(mail, ideaid)])
-    .then(rezults => {
-        if(!rezults[0] && !rezults[1]){
-            return Promise.all([ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : -1}}),
-                users.pushUnsupport(mail, ideaid)
-            ]).then(() => {
-                return ideas.findOne(
-                    {_id : new mongodb.ObjectId(ideaid)})
-                .then(idea => {
-                    result.status = true
-                    result.support = idea.support
-                    return result
-                    /*session.commitTransaction()
-                    session.endSession() */
-                })
-            })
-        }
-        else if(rezults[0]){
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : -2}}),
-                users.pullSupport(mail, ideaid),
-                users.pushUnsupport(mail, ideaid)
-            ]).then(resultsBoolsAndIdea => {
-                if(resultsBoolsAndIdea[1] && resultsBoolsAndIdea[2]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /* session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else {
-                    result.status = false
-                    result.support = resultsBoolsAndIdea[0].value.support
-                    return result
-                    /* session.commitTransaction()
-                    session.endSession() */
-                }
-            })
-        }
-        else {
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : 1}}),
-                users.pullUnsupport(mail, ideaid)
-            ]).then(resultsBoolAndIdea => {
-                if(resultsBoolAndIdea[1]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /* session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else{
-                    result.status = false
-                    result.support = resultsBoolAndIdea[0].value.support
-                    return result
-                    /* session.commitTransaction()
-                    session.endSession() */
-                }
-            })
-        }
-    })
 }
 
 export function clearIdeas() {
-    return ideas.deleteMany({})
+    const session = driver.session()
+    return session.run("match (i:Idea:" + modeLabel + ") detach delete i")
+    .then(res => {
+        session.close()
+        .then(() => {
+            return res
+        })
+    })
 }

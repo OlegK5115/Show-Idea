@@ -1,6 +1,7 @@
 const should = require('should')
 import * as ideas from '../../lib/ideas'
 import * as users from '../../lib/users'
+import * as support from '../../lib/support'
 
 describe('Support', function() {
     const user : users.User = {
@@ -23,9 +24,12 @@ describe('Support', function() {
         .then(() => {
             return users.setup()
             .then(() => {
-                return ideas.clearIdeas()
+                return support.setup()
                 .then(() => {
-                    return users.clearUsers()
+                    return ideas.clearIdeas()
+                    .then(() => {
+                        return users.clearUsers()
+                    })
                 })
             })
         })
@@ -36,7 +40,7 @@ describe('Support', function() {
         before(function() {
                 return users.registration(user)
                 .then((rezult) => {
-                    user._id = rezult.id
+                    user._id = rezult.userid
                     return ideas.saveIdea(idea1, user.email)
                     .then(resOfIdea1 => {
                         idea1._id = resOfIdea1.ideaId
@@ -50,63 +54,57 @@ describe('Support', function() {
         
         
         it('Support idea', function() {
-            return ideas.ideaUp(user.email, idea1._id)
+            return support.ideaUp(user.email, idea1._id)
             .then(result => {
                 should(result.status).be.equal(true)
                 should(result.support).be.equal(1)
             })
-            //  Тест Up идеи (повысить поддержку)
         })
     
         it('Support idea again', function() {
-            return ideas.ideaUp(user.email, idea1._id)
+            return support.ideaUp(user.email, idea1._id)
             .then(result => {
                 should(result.status).be.equal(true)
                 should(result.support).be.equal(0)
             })
-            //  Тест Up идеи (снять поддержку)
         })
     
         it('Flip up idea support', function() {
-            return ideas.ideaDown(user.email, idea1._id)
+            return support.ideaDown(user.email, idea1._id)
             .then(() => {
-                return ideas.ideaUp(user.email, idea1._id)
+                return support.ideaUp(user.email, idea1._id)
                 .then(result => {
                     should(result.status).be.equal(true)
                     should(result.support).be.equal(1)
                 })
             })
-            //  Тест Up идеи (сменить поддержку)
         })
         
         it('Unsupport idea', function() {
-            return ideas.ideaDown(user.email, idea1._id)
+            return support.ideaDown(user.email, idea1._id)
             .then(result => {
                 should(result.status).be.equal(true)
                 should(result.support).be.equal(-1)
             })
-            // Тест Down идеи (понизить поддержку)
         })
         
         it('Unsupport idea again', function() {
-            return ideas.ideaDown(user.email, idea1._id)
+            return support.ideaDown(user.email, idea1._id)
             .then(result => {
                 should(result.status).be.equal(true)
                 should(result.support).be.equal(0)
             })
-            //  Тест Down идеи (снять поддержку)
         })
     
         it('Flip down idea support', function() {
-            return ideas.ideaUp(user.email, idea1._id)
+            return support.ideaUp(user.email, idea1._id)
             .then(() => {
-                return ideas.ideaDown(user.email, idea1._id)
+                return support.ideaDown(user.email, idea1._id)
                 .then(result => {
                     should(result.status).be.equal(true)
                     should(result.support).be.equal(-1)
                 })
             })
-            //  Тест Up идеи (сменить поддержку)
         })
     
         it('Getting list of Ideas', function(){
