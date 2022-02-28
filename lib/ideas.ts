@@ -1,8 +1,6 @@
-import * as config from 'config'
-
 import * as mongodb from 'mongodb'
-const mongoUrl = "mongodb://" + config.mongodb.host + ':' + config.mongodb.port
 
+import * as connect from '../lib/connect'
 import * as users from '../lib/users'
 
 export interface Idea {
@@ -19,18 +17,13 @@ interface Result {
     support ?: number
 }
 
-
-/**
- * @type {mongodb.collection<any>}
- */
-let client : mongodb.MongoClient
 let ideas : mongodb.Collection<Idea>
 
 
 export function setup() : Promise<Boolean> {
 
-    return mongodb.MongoClient.connect(mongoUrl).then(client => {
-        ideas = client.db(config.mongodb.name).collection('ideas')
+    return connect.setup().then(db => {
+        ideas = db.collection('ideas')
         return true
     })
 }

@@ -1,7 +1,6 @@
-import * as config from 'config'
-
 import * as mongodb from 'mongodb'
-const mongoUrl = "mongodb://" + config.mongodb.host + ':' + config.mongodb.port
+
+import * as connect from '../lib/connect'
 
 export interface User {
     name : String,
@@ -21,12 +20,9 @@ let users : mongodb.Collection<User>
 
 export function setup() : Promise<Boolean> {
 
-    return mongodb.MongoClient.connect(mongoUrl).then(client => {
-        users = client.db(config.mongodb.name).collection('users')
+    return connect.setup().then(db => {
+        users = db.collection('users')
         return true
-    })
-    .catch(() => {
-        return false
     })
 }
 
