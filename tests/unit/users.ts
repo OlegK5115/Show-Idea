@@ -2,87 +2,76 @@ import 'mocha'
 const should = require('should')
 import * as users from '../../lib/users'
 
-
-
 describe('Users', function() {
-    const user : users.User = {
+    const userData : users.User = {
         name : "Alex",
         email : "alexf1989@example.com",
         password : "Pitbuli32"
     }
 
-    before(function() {
-        return users.setup()
-        .then(() => {
-          return users.clearUsers()
-        })
+    before(async function() {
+        await users.setup()
+        await users.clearUsers()
+        return
     })
 
     context('There is no users', function() {
 
-        it('Getting empty list of users', function() {
-            return users.getAllUsers()
-            .then(users => {
-                should(users).be.an.instanceOf(Array).and.have.lengthOf(0)
-            })
+        it('Getting empty list of users', async function() {
+            const allUsers = await users.getAllUsers()
+            should(allUsers).be.an.instanceOf(Array).and.have.lengthOf(0)
         })
 
-        it('Getting user by mail', function() {
-            return users.getUserByEmail(user.email)
-            .then(user => {
-                should(user).be.undefined
-            })
+        it('Getting user by mail', async function() {
+            const user = await users.getUserByEmail(userData.email)
+            should(user).be.undefined
         })
 
-        it('Trying signin user', function() {
-            return users.signin({email : user.email, password : user.password})
-            .then(result=> {
-                should(result).have.property('status')
-                should(result.status).be.equal(false)
-                should(result).have.property('message')
-                should(result.message).be.equal("Can't find user")
+        it('Trying signin user', async function() {
+            const result = await users.signin({
+                email : userData.email,
+                password : userData.password
             })
+            should(result).have.property('status')
+            should(result.status).be.equal(false)
+            should(result).have.property('message')
+            should(result.message).be.equal("Can't find user")
         })
 
     })
 
     context('There is no users', function() {
 
-        it('Regirstration without data', function() {
-            return users.registration(null)
-            .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
-            })
+        it('Regirstration without data', async function() {
+            const result = await users.registration(null)
+            should(result).have.property('status')
+            should(result.status).be.equal(false)
+            should(result).have.property('message')
         })
 
-        it('Regirstration user without name', function() {
-            return users.registration({email : user.email, password : user.password})
-            .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
+        it('Regirstration user without name', async function() {
+            const result = await users.registration({
+                email : userData.email,
+                password : userData.password
             })
+            should(result).have.property('status')
+            should(result.status).be.equal(false)
+            should(result).have.property('message')
         })
 
-        it('Regirstration user', function() {
-            return users.registration(user)
-            .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(true)
-                result.should.have.property('message')
-                result.should.have.property('userid')
-            })
+        it('Regirstration user', async function() {
+            const result = await users.registration(userData)
+            should(result).have.property('status')
+            should(result.status).be.equal(true)
+            should(result).have.property('message')
+            should(result).have.property('userid')
         })
 
-        it('Regirstration user again', function() {
-            return users.registration(user)
-            .then(result => {
-                result.should.have.property('status')
-                result.status.should.be.equal(false)
-                result.should.have.property('message')
-            })
+        it('Regirstration user again', async function() {
+            const result = await users.registration(userData)
+            should(result).have.property('status')
+            should(result.status).be.equal(false)
+            should(result).have.property('message')
         })
 
         after(function() {
@@ -92,34 +81,26 @@ describe('Users', function() {
 
     context('There is one user', function() {
 
-        before(function() {
-           return users.registration(user)
-           .then(id => {
-               user._id = id
-           })
+        before(async function() {
+           const res = await users.registration(userData)
+           userData._id = res.userid
         })
 
-        it('Getting one user', function() {
-            return users.getAllUsers()
-            .then(resultUsers => {
-                should(resultUsers).be.an.instanceOf(Array).and.have.lengthOf(1)
-            })
+        it('Getting one user', async function() {
+            const resultUsers = await users.getAllUsers()
+            should(resultUsers).be.an.instanceOf(Array).and.have.lengthOf(1)
         })
 
-        it('Getting one user using his email', function() {
-            return users.getUserByEmail(user.email)
-            .then(resultUser => {
-                should(resultUser).have.property("name", user.name)
-                should(resultUser).have.property("email", user.email)
-                should(resultUser).have.property("password", user.password)
-            })
+        it('Getting one user using his email', async function() {
+            const resultUser = await users.getUserByEmail(userData.email)
+            should(resultUser).have.property("name", userData.name)
+            should(resultUser).have.property("email", userData.email)
+            should(resultUser).have.property("password", userData.password)
         })
 
-        it('Trying find user using wrong email', function() {
-            return users.getUserByEmail("wrong@example.com")
-            .then(user => {
-                should(user).be.undefined
-            })
+        it('Trying find user using wrong email', async function() {
+            const user = await users.getUserByEmail("wrong@example.com")
+            should(user).be.undefined
         })
 
         after(function() {

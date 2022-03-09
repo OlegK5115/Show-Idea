@@ -11,264 +11,197 @@ export interface Idea {
     _id ?: mongodb.ObjectId
 }
 
-interface Result {
+export interface Result {
     status : Boolean,
     message ?: String,
     support ?: number
 }
 
-let ideas : mongodb.Collection<Idea>
-
-
-export function setup() : Promise<Boolean> {
-
-    return connect.setup().then(db => {
-        ideas = db.collection('ideas')
-        return true
-    })
-}
-
-export function getLength() : Promise<number> {
-    return ideas.countDocuments().then(result => {
-        return result
-    })
-}
-
-type ResultWithID = Result & {
+export type ResultWithID = Result & {
     ideaId : mongodb.ObjectId
 }
 
-export function saveIdea(newIdea, email) : Promise<ResultWithID> | Promise<Result> {
+export type ResultWithIdea = Result & {
+    idea : Idea
+}
+
+export type ResultWithSupport = Result & {
+    support : number
+}
+
+let ideas : mongodb.Collection<Idea>
+
+
+export async function setup() : Promise<Boolean> {
+    const db = await connect.setup()
+    ideas = db.collection('ideas')
+    return true
+}
+
+export async function getLength() : Promise<number> {
+    return await ideas.countDocuments()
+}
+
+export async function saveIdea(newIdea, email) : Promise<ResultWithID> {
     let result : ResultWithID = {
         status : true,
+        message : "",
         ideaId : null
     }
+    
     if(!email){
         result.status = false
         result.message = "Wrong email"
-        return Promise.resolve(result).then(() => {
-            return result
-        })
+        return result
     }
     if (!(!!newIdea.heading && !!newIdea.content)){
         result.message = "Wrong Idea"
         result.status = false
-        return Promise.resolve(result).then(() => {
-            return result
-        }) 
+        return result
     }
-    return users.getUserByEmail(email).then(user => {
-        if(!user) {
-            result.message = "Wrong email"
-            result.status = false
-            return result
-        }
-        const authorId = user._id
-        const idea = {heading : newIdea.heading, content : newIdea.content, support : 0, authorId : authorId}
-        return ideas.insertOne(idea)
-        .then(resIdea => {
-            result.message = "Added idea"
-            result.status = true
-            result.ideaId = resIdea.insertedId
-            return result
-        })
-    })
+    const user = await users.getUserByEmail(email)
+    if(!user) {
+        result.message = "Wrong email"
+        result.status = false
+        return result
+    }
+    const authorId = user._id
+    const idea = {heading : newIdea.heading, content : newIdea.content, support : 0, authorId : authorId}
+    const resIdea = await ideas.insertOne(idea)
+    result.message = "Added idea"
+    result.status = true
+    result.ideaId = resIdea.insertedId
+    return result
 }
 
 export function getAllIdeas() {
     return ideas
         .find()
-        .sort( {support : -1} ) // сортирует массив по призаку (1 - по возрастанию, -1 - по убыванию)
+        .sort( {support : -1} )
         .toArray()
 }
 
-type ResultWithIdea = Result & {
-    idea : Idea
-}
-
-export function showIdea(id : string) : Promise<ResultWithIdea> | Promise<Result> {
+export async function showIdea(id : string) : Promise<ResultWithIdea> {
     let result : ResultWithIdea = {
         status : true,
         idea : null
     }
-    return ideas.findOne({_id : new mongodb.ObjectId(id)})
-    .then(resultIdea => {
-        if(resultIdea == null){
+    const resultIdea = await ideas.findOne({_id : new mongodb.ObjectId(id)})
+    if(resultIdea == null){
+        result.status = false
+    }
+    else {
+        result.idea = resultIdea
+    }
+    return result
+}
+
+export async function ideaUp(mail, ideaid) : Promise<ResultWithSupport> {
+    let result : ResultWithSupport = {
+        status : true,
+        support : null
+    }
+    const resultBool1 = await users.findIdeasSupport(mail, ideaid)
+    const resultBool2 = await users.findIdeasUnsupport(mail, ideaid)
+
+    if(!resultBool1 && !resultBool2) {
+        await ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
+        {$inc : {support : 1}}),
+        await users.pushSupport(mail, ideaid)
+        const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
+        result.status = true
+        result.support = idea.support
+        return result
+    }
+    else if(resultBool2){
+        const resultIdea = await ideas.findOneAndUpdate(
+            {_id : new mongodb.ObjectId(ideaid)},
+            {$inc : {support : 2}
+        })
+
+        if(await users.pullUnsupport(mail, ideaid) && await users.pushSupport(mail, ideaid)) {
+            const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
+            result.status = true
+            result.support = idea.support
+            return result
+        }
+        else {
             result.status = false
+            result.support = resultIdea.value.support
+            return result
+        }
+    }
+    else {
+        const resultIdea = await ideas.findOneAndUpdate(
+            {_id : new mongodb.ObjectId(ideaid)},
+            {$inc : {support : -1}
+        })
+
+        if (await users.pullSupport(mail, ideaid)) {
+            const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
+            result.status = true
+            result.support = idea.support
             return result
         }
         else {
-            result.idea = resultIdea
+            result.status = false
+            result.support = resultIdea.value.support
             return result
         }
-    })
+    }
 }
 
-type ResultWithSupport = Result & {
-    support : number
-}
-
-export function ideaUp(mail, ideaid) : Promise<ResultWithSupport> {
+export async function ideaDown(mail, ideaid) : Promise<ResultWithSupport> {
     let result : ResultWithSupport = {
         status : true,
         support : null
     }
-    /* const session = client.startSession()
-    session.withTransaction()
-    .then(() => {}) */
-    return Promise.all([users.findIdeasSupport(mail, ideaid),
-        users.findIdeasUnsupport(mail, ideaid)])
-    .then(rezults => {
-        if(!rezults[0] && !rezults[1]){
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : 1}}),
-                users.pushSupport(mail, ideaid)
-            ]).then(() => {
-                return ideas.findOne(
-                    {_id : new mongodb.ObjectId(ideaid)})
-                .then(idea => {
-                    result.status = true
-                    result.support = idea.support
-                    return result
-                    /*session.commitTransaction()
-                    session.endSession() */
-                })
-            })
-        }
-        else if(rezults[1]){
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : 2}}),
-                users.pullUnsupport(mail, ideaid),
-                users.pushSupport(mail, ideaid)
-            ]).then(resultsBoolsAndIdea => {
-                if(resultsBoolsAndIdea[1] && resultsBoolsAndIdea[2]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /*session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else {
-                    result.status = false
-                    result.support = resultsBoolsAndIdea[0].value.support
-                    return result
-                    /*session.commitTransaction()
-                    session.endSession() */
-                }
-            })
-        }
-        else {
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : -1}}),
-                users.pullSupport(mail, ideaid)
-            ]).then(resultsBoolAndIdea => {
-                if(resultsBoolAndIdea[1]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /*session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else{
-                    result.status = false
-                    result.support = resultsBoolAndIdea[0].value.support
-                    return result
-                    /* session.commitTransaction()
-                    session.endSession() */
-                }
-            })
-        }
-    })
-}
-
-export function ideaDown(mail, ideaid) : Promise<ResultWithSupport> {
-    let result : ResultWithSupport = {
-        status : true,
-        support : null
+    const resultBool1 = await users.findIdeasSupport(mail, ideaid)
+    const resultBool2 = await users.findIdeasUnsupport(mail, ideaid)
+    if(!resultBool1 && !resultBool2){
+        await ideas.findOneAndUpdate({_id : new mongodb.ObjectId(ideaid)},
+        {$inc : {support : -1}})
+        await users.pushUnsupport(mail, ideaid)
+        const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
+        result.status = true
+        result.support = idea.support
+        return result
     }
-    /*const session = client.startSession()
-    session.withTransaction()
-    .then(() => {}) */
-    return Promise.all([users.findIdeasSupport(mail, ideaid),
-        users.findIdeasUnsupport(mail, ideaid)])
-    .then(rezults => {
-        if(!rezults[0] && !rezults[1]){
-            return Promise.all([ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : -1}}),
-                users.pushUnsupport(mail, ideaid)
-            ]).then(() => {
-                return ideas.findOne(
-                    {_id : new mongodb.ObjectId(ideaid)})
-                .then(idea => {
-                    result.status = true
-                    result.support = idea.support
-                    return result
-                    /*session.commitTransaction()
-                    session.endSession() */
-                })
-            })
-        }
-        else if(rezults[0]){
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : -2}}),
-                users.pullSupport(mail, ideaid),
-                users.pushUnsupport(mail, ideaid)
-            ]).then(resultsBoolsAndIdea => {
-                if(resultsBoolsAndIdea[1] && resultsBoolsAndIdea[2]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /* session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else {
-                    result.status = false
-                    result.support = resultsBoolsAndIdea[0].value.support
-                    return result
-                    /* session.commitTransaction()
-                    session.endSession() */
-                }
-            })
+    else if(resultBool1){
+        const resultIdea = await ideas.findOneAndUpdate(
+            {_id : new mongodb.ObjectId(ideaid)},
+            {$inc : {support : -2}
+        })
+        
+        if(await users.pullSupport(mail, ideaid) && await users.pushUnsupport(mail, ideaid)) {
+            const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
+            result.status = true
+            result.support = idea.support
+            return result
         }
         else {
-            return Promise.all([
-                ideas.findOneAndUpdate( {_id : new mongodb.ObjectId(ideaid)},
-                {$inc : {support : 1}}),
-                users.pullUnsupport(mail, ideaid)
-            ]).then(resultsBoolAndIdea => {
-                if(resultsBoolAndIdea[1]){
-                    return ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-                    .then(idea => {
-                        result.status = true
-                        result.support = idea.support
-                        return result
-                        /* session.commitTransaction()
-                        session.endSession() */
-                    })
-                }
-                else{
-                    result.status = false
-                    result.support = resultsBoolAndIdea[0].value.support
-                    return result
-                    /* session.commitTransaction()
-                    session.endSession() */
-                }
-            })
+            result.status = false
+            result.support = resultIdea.value.support
+            return result
         }
-    })
+    }
+    else {
+        const resultIdea = await ideas.findOneAndUpdate(
+            {_id : new mongodb.ObjectId(ideaid)},
+            {$inc : {support : 1}
+        })
+        if(await users.pullUnsupport(mail, ideaid)) {
+            const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
+            result.status = true
+            result.support = idea.support
+            return result
+        }
+        else{
+            result.status = false
+            result.support = resultIdea.value.support
+            return result
+        }
+    }
 }
 
 export function clearIdeas() {

@@ -3,8 +3,6 @@ const should = require('should')
 import * as ideas from '../../lib/ideas'
 import * as users from '../../lib/users'
 
-// запуск тестов через npm test
-
 describe('Ideas', function(){
 
     const user : users.User = {
@@ -18,98 +16,78 @@ describe('Ideas', function(){
         "content": "This is my first idea"
     }
 
-    before(function() {
-        return ideas.setup()
-        .then(() => {
-            return users.setup()
-            .then(() => {
-                return ideas.clearIdeas()
-                .then(() => {
-                    return users.clearUsers()
-                    .then(() => {
-                        return users.registration(user)
-                        .then((rezult) => {
-                            user._id = rezult.userid
-                        })
-                    })
-                })
-            })
-        })
+    before( async function() {
+        await ideas.setup()
+        await users.setup()
+        await ideas.clearIdeas()
+        await users.clearUsers()
+        const res = await users.registration(user)
+        user._id = res.userid
     })
     
     context('There is no Ideas', function() {
 
         before(function(){
-            return users.addUser({name : "Virus", email : null, password : "iamvirus1"})
-        })
-
-        it('Getting empty list of Ideas', function() {
-            return ideas.getAllIdeas()
-            .then(ideas => {
-                should(ideas).be.an.instanceOf(Array).and.have.lengthOf(0)
+            return users.addUser({
+                name : "Virus",
+                email : null,
+                password : "iamvirus1"
             })
         })
 
-        it('Adding first idea', function() {
-            return ideas.saveIdea(idea, user.email)
-            .then(rezult => {
-                should(rezult).have.property("status")
-                should(rezult.status).be.equal(true)
-                should(rezult).have.property("message")
-                should(rezult).have.property("ideaId")
-                idea._id = rezult.ideaId
-            })
+        it('Getting empty list of Ideas', async function() {
+            const allIdeas = await ideas.getAllIdeas()
+            should(allIdeas).be.an.instanceOf(Array).and.have.lengthOf(0)
         })
 
-        it('Adding idea with wrong user email (failure)', function() {
-            return ideas.saveIdea(idea, "wrong@example.com")
-            .then(rezult => {
-                should(rezult).have.property("status")
-                should(rezult.status).be.equal(false)
-                should(rezult).have.property("message")
-            })
+        it('Adding first idea', async function() {
+            const result = await ideas.saveIdea(idea, user.email)
+            should(result).have.property("status")
+            should(result.status).be.equal(true)
+            should(result).have.property("message")
+            should(result).have.property("ideaId")
+            idea._id = result.ideaId
         })
 
-        it('Adding idea without user email (failure)', function() {
-            return ideas.saveIdea(idea, null)
-            .then(rezult => {
-                should(rezult).have.property("status")
-                should(rezult.status).be.equal(false)
-                should(rezult).have.property("message")
-            })
+        it('Adding idea with wrong user email (failure)', async function() {
+            const result = await ideas.saveIdea(idea, "wrong@example.com")
+            should(result).have.property("status")
+            should(result.status).be.equal(false)
+            should(result).have.property("message")
         })
 
-        it('Getting idea by id', function() {
-            return ideas.showIdea(idea._id.toString())
-            .then(rezult => {
-                should(rezult).have.property("status")
-                should(rezult.status).be.equal(true)
-                should(rezult).have.property("idea")
-                should(rezult.idea).have.property("heading")
-                should(rezult.idea.heading).be.equal(idea.heading)
-                should(rezult.idea).have.property("content")
-                should(rezult.idea.content).be.equal(idea.content)
-                should(rezult.idea).have.property("_id")
-                should(rezult.idea._id.toString()).be.equal(idea._id.toString())
-            })
+        it('Adding idea without user email (failure)', async function() {
+            const result = await ideas.saveIdea(idea, null)
+            should(result).have.property("status")
+            should(result.status).be.equal(false)
+            should(result).have.property("message")
         })
 
-        it('Getting idea by wrong id', function() {
-            return ideas.showIdea('aaaaaaaaaaaaaaaaaaaaaaaa')
-            .then(rezult => {
-                should(rezult).have.property("status")
-                should(rezult.status).be.equal(false)
-            })
+        it('Getting idea by id', async function() {
+            const result = await ideas.showIdea(idea._id.toString())
+            should(result).have.property("status")
+            should(result.status).be.equal(true)
+            should(result).have.property("idea")
+            should(result.idea).have.property("heading")
+            should(result.idea.heading).be.equal(idea.heading)
+            should(result.idea).have.property("content")
+            should(result.idea.content).be.equal(idea.content)
+            should(result.idea).have.property("_id")
+            should(result.idea._id.toString()).be.equal(idea._id.toString())
         })
 
-        it('Getting length of ideas', function() {
-            return ideas.getLength()
-            .then(length => {
-                should(length).be.equal(1)
-            })
+        it('Getting idea by wrong id', async function() {
+            const result = await ideas.showIdea('aaaaaaaaaaaaaaaaaaaaaaaa')
+            should(result).have.property("status")
+            should(result.status).be.equal(false)
         })
 
-        after(function() {
+        it('Getting length of ideas', async function() {
+            const lenght = await ideas.getLength()
+            should(length).be.equal(1)
+        })
+
+        after(async function() {
             return ideas.clearIdeas()
         })
 
@@ -117,30 +95,26 @@ describe('Ideas', function(){
 
     context('There is one Idea', function() {
 
-        before(function() {
-            return ideas.saveIdea(idea, user.email)
-            .then(rezult => {
-                idea._id = rezult.ideaId
-            })
+        before(async function() {
+            const result = await ideas.saveIdea(idea, user.email)
+            idea._id = result.ideaId
         })
 
-        it('Getting list of one Idea', function(){
-            return ideas.getAllIdeas()
-            .then(ideas => {
-                should(ideas).be.an.instanceOf(Array).and.have.lengthOf(1)
-                should(ideas[0]).have.property("_id")
-                should(ideas[0]._id.toString()).be.equal(idea._id.toString())
-                should(ideas[0]).have.property("heading", idea.heading)
-                should(ideas[0]).have.property("content", idea.content)
-            })
+        it('Getting list of one Idea', async function(){
+            const allIdeas = await ideas.getAllIdeas()
+            should(allIdeas).be.an.instanceOf(Array).and.have.lengthOf(1)
+            should(allIdeas[0]).have.property("_id")
+            should(allIdeas[0]._id.toString()).be.equal(idea._id.toString())
+            should(allIdeas[0]).have.property("heading", idea.heading)
+            should(allIdeas[0]).have.property("content", idea.content)
         })
 
-        after(function() {
+        after( async function() {
             return ideas.clearIdeas()
         })
     })
 
-    after(function() {
+    after( async function() {
         return users.clearUsers()
     })
 })

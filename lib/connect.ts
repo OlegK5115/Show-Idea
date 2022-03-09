@@ -5,16 +5,10 @@ const mongoUrl = "mongodb://" + config.mongodb.host + ':' + config.mongodb.port
 
 let db : mongodb.Db
 
-export function setup() : Promise<mongodb.Db> {
-    if(db){
-        return Promise.resolve(db).then((db) => {
-            return db
-        })
+export async function setup() : Promise<mongodb.Db> {
+    if(!db) {
+        const client = await mongodb.MongoClient.connect(mongoUrl)
+        db = client.db(config.mongodb.name)
     }
-    else{
-        return mongodb.MongoClient.connect(mongoUrl).then(client => {
-            db = client.db(config.mongodb.name)
-            return db
-        })
-    }
+    return db
 }

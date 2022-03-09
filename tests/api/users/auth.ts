@@ -11,103 +11,88 @@ describe('user reqistration', function() {
     let agent
 
 
-    before(function () {
-        return Promise.all([ideasDb.setup(), usersDb.setup()])
-        .then(() => {
-            return Promise.all([ideasDb.clearIdeas(), usersDb.clearUsers()])
-        })
-        .then(() => {
-            app = require('../../../main')
-            agent = supertest.agent(app, {})
-            return
-        })
+    before(async function () {
+        await ideasDb.setup()
+        await usersDb.setup()
+        await ideasDb.clearIdeas()
+        await usersDb.clearUsers()
+        app = require('../../../main')
+        agent = supertest.agent(app, {})
+        return
     })
     
     context('Registration, signin and logout', function() {
 
-        it('Check authorization anonimous user', function() {
-            return agent
+        it('Check authorization anonimous user', async function() {
+            const result = await agent
             .get('/auth/check')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .then(rezult => {
-                should(rezult.body).have.property('status')
-                should(rezult.body.status).equal(false)
-            })
+            should(result.body).have.property('status')
+            should(result.body.status).equal(false)
         })
 
-        it('User registration', function() {
-            return agent
+        it('User registration', async function() {
+            const result = await agent
             .post('/registration')
             .send({user : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .then(rezult => {
-                rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(true) // equal() - равенство с указанным знач.
-                rezult.body.should.have.property('message') // property() - название поля
-            })
+            should(result.body).have.property('status')
+            should(result.body.status).equal(true)
+            should(result.body).have.property('message')
         })
 
-        it('Wrong user signin', function() {
-            return agent
+        it('Wrong user signin', async function() {
+            const result = await agent
             .post('/signin')
             .send({email : 'dinosaur@example.com', pasword : 'roar'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .then(rezult => {
-                rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(false)
-                rezult.body.should.have.property('message')
-            })
+            result.body.should.have.property('status')
+            result.body.status.should.equal(false)
+            result.body.should.have.property('message')
         })
 
-        it('User signin', function() {
-            return agent
+        it('User signin', async function() {
+            const result = await agent
             .post('/signin')
             .send({email : 'dinosaur@example.com', password : 'rrrrrrrr'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .then(rezult => {
-                rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(true)
-                rezult.body.should.have.property('message')
-            })
+            result.body.should.have.property('status')
+            result.body.status.should.equal(true)
+            result.body.should.have.property('message')
         })
 
-        it('Check authorization user', function() {
-            return agent
+        it('Check authorization user', async function() {
+            const result = await agent
             .get('/auth/check')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .then(rezult => {
-                rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(true)
-                rezult.body.should.have.property('name')
-                rezult.body.name.should.equal('dinosaur')
-            })
+            result.body.should.have.property('status')
+            result.body.status.should.equal(true)
+            result.body.should.have.property('name')
+            result.body.name.should.equal('dinosaur')
         })
 
-        it('User logout', function(){
-            return agent
+        it('User logout', async function(){
+            const result = await agent
             .get('/auth/logout')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            .then(rezult => {
-                rezult.body.should.have.property('status')
-                rezult.body.status.should.equal(true)
-                rezult.body.should.have.property('deleteName')
-                rezult.body.deleteName.should.equal('dinosaur')
-            })
+            result.body.should.have.property('status')
+            result.body.status.should.equal(true)
+            result.body.should.have.property('deleteName')
+            result.body.deleteName.should.equal('dinosaur')
         })
     })
 
     // check auth, logout
 
-    after(function () {
-        return ideasDb.clearIdeas()
-        .then(() => {
-            usersDb.clearUsers()
-        })
+    after(async function () {
+        await ideasDb.clearIdeas()
+        await usersDb.clearUsers()
+        return
     })
 })

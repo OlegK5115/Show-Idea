@@ -8,54 +8,47 @@ describe('GET /article/:id', function() {
     let agent
 
 
-    before(function () {
-        return Promise.all([ideasDb.setup(), usersDb.setup()])
-        .then(() => {
-            return Promise.all([ideasDb.clearIdeas(), usersDb.clearUsers()])
-            .then(() => {
-                app = require('../../main')
-                agent = supertest.agent(app, {}) // supertest(app)
-                return
-            })
-        })
+    before(async function () {
+        await ideasDb.setup()
+        await usersDb.setup()
+        await ideasDb.clearIdeas()
+        await usersDb.clearUsers()
+        app = require('../../main')
+        agent = supertest.agent(app, {}) // supertest(app)
     })
 
     context('No Ideas', function() {
 
 
-        it('Idea not found', function() {
-            return agent
-            .get('/article/AAAAAAAAAAAAAAAAAAAAAAAA')
-            .set('X-Request-With', 'XMLHttpRequest')
-            .set('Content-Type', 'application/json')
-            .expect(404)
-            .then(res => {
-                res.body.should.have.property("status")
-                res.body.status.should.equal(false, res.body.msg)
-            })
+        it('Idea not found', async function() {
+            const res = await agent
+                .get('/article/AAAAAAAAAAAAAAAAAAAAAAAA')
+                .set('X-Request-With', 'XMLHttpRequest')
+                .set('Content-Type', 'application/json')
+                .expect(404)
+
+            res.body.should.have.property("status")
+            res.body.status.should.equal(false, res.body.msg)
+            return
         })
     })
 
     context('There is one idea', function() {
-        before(function() {
-            return agent
-            .post('/registration')
-            .send({user : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'}) // почему объект нулевой
-            .set('X-Request-With', 'XMLHttpRequest')
-            .set('Accept', 'application/json')
-            .set('Content-Type', 'application/json')
-            .expect(200)
-            .then(() => {
-                return agent
+        before(async function() {
+            await agent
+                .post('/registration')
+                .send({user : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'})
+                .set('X-Request-With', 'XMLHttpRequest')
+                .set('Accept', 'application/json')
+                .set('Content-Type', 'application/json')
+                .expect(200)
+            const rezult = await agent
                 .post('/signin')
                 .send({email : 'dinosaur@example.com', password : 'rrrrrrrr'})
                 .set('X-Request-With', 'XMLHttpRequest')
                 .set('Content-Type', 'application/json')
                 .expect(200)
-                .then(rezult => {
-                    
-                })
-            })
+            return
         })
         /*При помощи Agent можно сделать запрос на сессию */
         it('Idea not found', function() {
@@ -64,7 +57,6 @@ describe('GET /article/:id', function() {
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             .expect(404)
-            .then(res => {})
         })
         /* Уже должна быть создана сессия*/
         after(function() {
@@ -77,10 +69,9 @@ describe('GET /article/:id', function() {
         })
     })
 
-    after(function () {
-        return ideasDb.clearIdeas()
-        .then(() => {
-            usersDb.clearUsers()
-        })
+    after(async function () {
+        await ideasDb.clearIdeas()
+        await usersDb.clearUsers()
+        return
     })
 })

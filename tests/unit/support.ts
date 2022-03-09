@@ -18,117 +18,80 @@ describe('Support', function() {
         "content": "This is my second idea"
     }
 
-    before(function() {
-        return ideas.setup()
-        .then(() => {
-            return users.setup()
-            .then(() => {
-                return ideas.clearIdeas()
-                .then(() => {
-                    return users.clearUsers()
-                })
-            })
-        })
+    before(async function() {
+        await ideas.setup()
+        await users.setup()
+        await ideas.clearIdeas()
+        await users.clearUsers()
+        return
     })
 
     context('There are two Ideas', function() {
         
-        before(function() {
-                return users.registration(user)
-                .then((rezult) => {
-                    user._id = rezult.id
-                    return ideas.saveIdea(idea1, user.email)
-                    .then(resOfIdea1 => {
-                        idea1._id = resOfIdea1.ideaId
-                        return ideas.saveIdea(idea2, user.email)
-                        .then(resOfIdea2 => {
-                        idea2._id = resOfIdea2.ideaId
-                        })
-                    })
-                })
-            })
-        
-        
-        it('Support idea', function() {
-            return ideas.ideaUp(user.email, idea1._id)
-            .then(result => {
-                should(result.status).be.equal(true)
-                should(result.support).be.equal(1)
-            })
-            //  Тест Up идеи (повысить поддержку)
-        })
-    
-        it('Support idea again', function() {
-            return ideas.ideaUp(user.email, idea1._id)
-            .then(result => {
-                should(result.status).be.equal(true)
-                should(result.support).be.equal(0)
-            })
-            //  Тест Up идеи (снять поддержку)
-        })
-    
-        it('Flip up idea support', function() {
-            return ideas.ideaDown(user.email, idea1._id)
-            .then(() => {
-                return ideas.ideaUp(user.email, idea1._id)
-                .then(result => {
-                    should(result.status).be.equal(true)
-                    should(result.support).be.equal(1)
-                })
-            })
-            //  Тест Up идеи (сменить поддержку)
+        before(async function() {
+            const result = await users.registration(user)
+            user._id = result.userid
+            const resOfIdea1 = await ideas.saveIdea(idea1, user.email)
+            idea1._id = resOfIdea1.ideaId
+            const resOfIdea2 = await ideas.saveIdea(idea2, user.email)
+            idea2._id = resOfIdea2.ideaId
         })
         
-        it('Unsupport idea', function() {
-            return ideas.ideaDown(user.email, idea1._id)
-            .then(result => {
-                should(result.status).be.equal(true)
-                should(result.support).be.equal(-1)
-            })
-            // Тест Down идеи (понизить поддержку)
+        
+        it('Support idea', async function() {
+            const result = await ideas.ideaUp(user.email, idea1._id)
+            should(result.status).be.equal(true)
+            should(result.support).be.equal(1)
+        })
+    
+        it('Support idea again', async function() {
+            const result = await ideas.ideaUp(user.email, idea1._id)
+            should(result.status).be.equal(true)
+            should(result.support).be.equal(0)
+        })
+    
+        it('Flip up idea support', async function() {
+            await ideas.ideaDown(user.email, idea1._id)
+            const result = await ideas.ideaUp(user.email, idea1._id)
+            should(result.status).be.equal(true)
+            should(result.support).be.equal(1)
         })
         
-        it('Unsupport idea again', function() {
-            return ideas.ideaDown(user.email, idea1._id)
-            .then(result => {
-                should(result.status).be.equal(true)
-                should(result.support).be.equal(0)
-            })
-            //  Тест Down идеи (снять поддержку)
+        it('Unsupport idea', async function() {
+            const result = await ideas.ideaDown(user.email, idea1._id)
+            should(result.status).be.equal(true)
+            should(result.support).be.equal(-1)
+        })
+        
+        it('Unsupport idea again', async function() {
+            const result = await ideas.ideaDown(user.email, idea1._id)
+            should(result.status).be.equal(true)
+            should(result.support).be.equal(0)
         })
     
-        it('Flip down idea support', function() {
-            return ideas.ideaUp(user.email, idea1._id)
-            .then(() => {
-                return ideas.ideaDown(user.email, idea1._id)
-                .then(result => {
-                    should(result.status).be.equal(true)
-                    should(result.support).be.equal(-1)
-                })
-            })
-            //  Тест Up идеи (сменить поддержку)
+        it('Flip down idea support', async function() {
+            await ideas.ideaUp(user.email, idea1._id)
+            const result = await ideas.ideaDown(user.email, idea1._id)
+            should(result.status).be.equal(true)
+            should(result.support).be.equal(-1)
         })
     
-        it('Getting list of Ideas', function(){
-            return ideas.getAllIdeas()
-            .then(ideas => {
-                should(ideas).be.an.instanceOf(Array).and.have.lengthOf(2)
-                should(ideas[0]).have.property("_id", idea2._id)
-                should(ideas[0]).have.property("heading", idea2.heading)
-                should(ideas[0]).have.property("content", idea2.content)
-                should(ideas[0]).have.property("support", 0)
-                should(ideas[1]).have.property("_id", idea1._id)
-                should(ideas[1]).have.property("heading", idea1.heading)
-                should(ideas[1]).have.property("content", idea1.content)
-                should(ideas[1]).have.property("support", -1)
-            })
+        it('Getting list of Ideas', async function(){
+            const allIdeas = await ideas.getAllIdeas()
+            should(allIdeas).be.an.instanceOf(Array).and.have.lengthOf(2)
+            should(allIdeas[0]).have.property("_id", idea2._id)
+            should(allIdeas[0]).have.property("heading", idea2.heading)
+            should(allIdeas[0]).have.property("content", idea2.content)
+            should(allIdeas[0]).have.property("support", 0)
+            should(allIdeas[1]).have.property("_id", idea1._id)
+            should(allIdeas[1]).have.property("heading", idea1.heading)
+            should(allIdeas[1]).have.property("content", idea1.content)
+            should(allIdeas[1]).have.property("support", -1)
         })
     
-        after(function() {
-            return ideas.clearIdeas()
-            .then(() => {
-                users.clearUsers()
-            })
+        after(async function() {
+            await ideas.clearIdeas()
+            await users.clearUsers()
         })
     })
 })
