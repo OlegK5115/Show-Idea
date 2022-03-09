@@ -83,7 +83,7 @@ describe('Ideas', function(){
         })
 
         it('Getting length of ideas', async function() {
-            const lenght = await ideas.getLength()
+            const length = await ideas.getLength()
             should(length).be.equal(1)
         })
 
