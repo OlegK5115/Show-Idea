@@ -5,13 +5,13 @@ import * as users from '../../lib/users'
 
 describe('Ideas', function(){
 
-    const user : users.User = {
+    const userData : users.User = {
         name : "Alex",
         email : "alexf1989@example.com",
         password : "Pitbuli32"
-    } 
+    }
 
-    const idea : ideas.Idea = {
+    const ideaData : ideas.Idea = {
         "heading": "test",
         "content": "This is my first idea"
     }
@@ -21,8 +21,7 @@ describe('Ideas', function(){
         await users.setup()
         await ideas.clearIdeas()
         await users.clearUsers()
-        const res = await users.registration(user)
-        user._id = res.userid
+        userData._id = await users.registration(userData)
     })
     
     context('There is no Ideas', function() {
@@ -41,45 +40,40 @@ describe('Ideas', function(){
         })
 
         it('Adding first idea', async function() {
-            const result = await ideas.saveIdea(idea, user.email)
-            should(result).have.property("status")
-            should(result.status).be.equal(true)
-            should(result).have.property("message")
-            should(result).have.property("ideaId")
-            idea._id = result.ideaId
+            const ideaId = await ideas.saveIdea(ideaData, userData.email)
+            should.notEqual(ideaId, null)
+            ideaData._id = ideaId
         })
 
         it('Adding idea with wrong user email (failure)', async function() {
-            const result = await ideas.saveIdea(idea, "wrong@example.com")
-            should(result).have.property("status")
-            should(result.status).be.equal(false)
-            should(result).have.property("message")
+            const ideaId = await ideas.saveIdea(ideaData, "wrong@example.com")
+            should(ideaId).be.equal(null)
         })
 
         it('Adding idea without user email (failure)', async function() {
-            const result = await ideas.saveIdea(idea, null)
-            should(result).have.property("status")
-            should(result.status).be.equal(false)
-            should(result).have.property("message")
+            try {
+                const userid = await ideas.saveIdea(ideaData, null)
+                should.fail(userid, null, "Error save idea")
+            }
+            catch (err) {
+                should(err.message).be.equal("Missing email")
+            }
         })
 
         it('Getting idea by id', async function() {
-            const result = await ideas.showIdea(idea._id.toString())
-            should(result).have.property("status")
-            should(result.status).be.equal(true)
-            should(result).have.property("idea")
-            should(result.idea).have.property("heading")
-            should(result.idea.heading).be.equal(idea.heading)
-            should(result.idea).have.property("content")
-            should(result.idea.content).be.equal(idea.content)
-            should(result.idea).have.property("_id")
-            should(result.idea._id.toString()).be.equal(idea._id.toString())
+            const idea = await ideas.showIdea(ideaData._id.toString())
+            should.notEqual(idea, null)
+            should(idea).have.property("heading")
+            should(idea.heading).be.equal(ideaData.heading)
+            should(idea).have.property("content")
+            should(idea.content).be.equal(ideaData.content)
+            should(idea).have.property("_id")
+            should(idea._id.toString()).be.equal(ideaData._id.toString())
         })
 
         it('Getting idea by wrong id', async function() {
-            const result = await ideas.showIdea('aaaaaaaaaaaaaaaaaaaaaaaa')
-            should(result).have.property("status")
-            should(result.status).be.equal(false)
+            const idea = await ideas.showIdea('aaaaaaaaaaaaaaaaaaaaaaaa')
+            should(idea).be.equal(null)
         })
 
         it('Getting length of ideas', async function() {
@@ -96,17 +90,16 @@ describe('Ideas', function(){
     context('There is one Idea', function() {
 
         before(async function() {
-            const result = await ideas.saveIdea(idea, user.email)
-            idea._id = result.ideaId
+            ideaData._id = await ideas.saveIdea(ideaData, userData.email)
         })
 
         it('Getting list of one Idea', async function(){
             const allIdeas = await ideas.getAllIdeas()
             should(allIdeas).be.an.instanceOf(Array).and.have.lengthOf(1)
             should(allIdeas[0]).have.property("_id")
-            should(allIdeas[0]._id.toString()).be.equal(idea._id.toString())
-            should(allIdeas[0]).have.property("heading", idea.heading)
-            should(allIdeas[0]).have.property("content", idea.content)
+            should(allIdeas[0]._id.toString()).be.equal(ideaData._id.toString())
+            should(allIdeas[0]).have.property("heading", ideaData.heading)
+            should(allIdeas[0]).have.property("content", ideaData.content)
         })
 
         after( async function() {

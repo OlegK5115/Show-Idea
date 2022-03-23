@@ -29,51 +29,42 @@ describe('Support', function() {
     context('There are two Ideas', function() {
         
         before(async function() {
-            const result = await users.registration(user)
-            user._id = result.userid
-            const resOfIdea1 = await ideas.saveIdea(idea1, user.email)
-            idea1._id = resOfIdea1.ideaId
-            const resOfIdea2 = await ideas.saveIdea(idea2, user.email)
-            idea2._id = resOfIdea2.ideaId
+            user._id = await users.registration(user)
+            idea1._id = await ideas.saveIdea(idea1, user.email)
+            idea2._id = await ideas.saveIdea(idea2, user.email)
         })
         
         
         it('Support idea', async function() {
-            const result = await ideas.ideaUp(user.email, idea1._id)
-            should(result.status).be.equal(true)
-            should(result.support).be.equal(1)
+            const support = await ideas.ideaUp(user.email, idea1._id)
+            should(support).be.equal(1)
         })
     
         it('Support idea again', async function() {
-            const result = await ideas.ideaUp(user.email, idea1._id)
-            should(result.status).be.equal(true)
-            should(result.support).be.equal(0)
+            const support = await ideas.ideaUp(user.email, idea1._id)
+            should(support).be.equal(0)
         })
     
         it('Flip up idea support', async function() {
             await ideas.ideaDown(user.email, idea1._id)
-            const result = await ideas.ideaUp(user.email, idea1._id)
-            should(result.status).be.equal(true)
-            should(result.support).be.equal(1)
+            const support = await ideas.ideaUp(user.email, idea1._id)
+            should(support).be.equal(1)
         })
         
         it('Unsupport idea', async function() {
-            const result = await ideas.ideaDown(user.email, idea1._id)
-            should(result.status).be.equal(true)
-            should(result.support).be.equal(-1)
+            const support = await ideas.ideaDown(user.email, idea1._id)
+            should(support).be.equal(-1)
         })
         
         it('Unsupport idea again', async function() {
-            const result = await ideas.ideaDown(user.email, idea1._id)
-            should(result.status).be.equal(true)
-            should(result.support).be.equal(0)
+            const support = await ideas.ideaDown(user.email, idea1._id)
+            should(support).be.equal(0)
         })
     
         it('Flip down idea support', async function() {
             await ideas.ideaUp(user.email, idea1._id)
-            const result = await ideas.ideaDown(user.email, idea1._id)
-            should(result.status).be.equal(true)
-            should(result.support).be.equal(-1)
+            const support = await ideas.ideaDown(user.email, idea1._id)
+            should(support).be.equal(-1)
         })
     
         it('Getting list of Ideas', async function(){

@@ -1,5 +1,7 @@
 const supertest = require('supertest')
 
+const should = require("should")
+
 import * as ideasDb from '../../lib/ideas'
 import * as usersDb from '../../lib/users'
 
@@ -26,9 +28,7 @@ describe('GET /article/:id', function() {
                 .set('X-Request-With', 'XMLHttpRequest')
                 .set('Content-Type', 'application/json')
                 .expect(404)
-
-            res.body.should.have.property("status")
-            res.body.status.should.equal(false, res.body.msg)
+            should(res.body).be.equal(null)
             return
         })
     })
@@ -42,7 +42,7 @@ describe('GET /article/:id', function() {
                 .set('Accept', 'application/json')
                 .set('Content-Type', 'application/json')
                 .expect(200)
-            const rezult = await agent
+            await agent
                 .post('/signin')
                 .send({email : 'dinosaur@example.com', password : 'rrrrrrrr'})
                 .set('X-Request-With', 'XMLHttpRequest')
@@ -50,7 +50,6 @@ describe('GET /article/:id', function() {
                 .expect(200)
             return
         })
-        /*При помощи Agent можно сделать запрос на сессию */
         it('Idea not found', function() {
             return agent
             .get('/article/AAAAAAAAAAAAAAAAAAAAAAAA')
@@ -58,14 +57,12 @@ describe('GET /article/:id', function() {
             .set('Content-Type', 'application/json')
             .expect(404)
         })
-        /* Уже должна быть создана сессия*/
         after(function() {
             return agent
             .get('/auth/logout')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             .expect(200)
-            // 302 Found - при перезагрузке страницы (redirect)
         })
     })
 

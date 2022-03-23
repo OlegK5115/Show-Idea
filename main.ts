@@ -46,9 +46,6 @@ app.use(session({
     }
 }))
 
-/* Сессия создается при входе на сайт в браузере. При входе на другой
-аккаунт использовать другой браузер */
-
 async function main() {
     const status1 = await ideas.setup()
     const status2 = await users.setup()
@@ -98,9 +95,6 @@ async function main() {
         delete req.session.email
         delete req.session.login
         req.session.destroy(function () {
-            //уничтожение текущей сессии.
-            /*При использовании store.destroy(id, callback) идет
-            удаление сессии внутри хранилища по id*/
             result.status = true
             if(req.headers['content-type'] == 'application/json'){
                 res.json(result)
@@ -112,43 +106,79 @@ async function main() {
     })
 
     app.post('/registration', urlensodedParser, async (req, res) => {
-        const result = await users.registration({
-            name : req.body.user,
-            email : req.body.email,
-            password : req.body.password
-        })
-        if(req.headers['content-type'] == 'application/json') {
-            res.json(result)
-        }
-        else {
-            if(result.status){
+        try {
+            const userid = await users.registration({
+                name : req.body.user,
+                email : req.body.email,
+                password : req.body.password
+            })
+            if (req.headers['content-type'] == 'application/json') {
+                const result = {
+                    status : true,
+                    userid : userid,
+                    message : "User registrated sucessful"
+                }
+                res.json(result)
+            }
+            else {
                 res.redirect("/signin")
             }
-            else{
+        }
+        catch (err) {
+            if (req.headers['content-type'] == 'application/json') {
+                const result = {
+                    status : false,
+                    userid : null,
+                    message : err.message
+                }
+                res.json(result)
+            }
+            else {
                 res.redirect("/registration")
             }
         }
     })
 
     app.post('/signin', urlensodedParser, async (req, res) => {
-        const result = await users.signin({
-            email : req.body.email,
-            password : req.body.password
-        })
-        if(req.headers['content-type'] == 'application/json') {
-            if(result.status){
-                req.session.login = true
-                req.session.name = result.user.name
-                req.session.email = result.user.email
+        try {
+            const user = await users.signin({
+                email : req.body.email,
+                password : req.body.password
+            })
+            if(req.headers['content-type'] == 'application/json') {
+                const result = {
+                    status : true,
+                    user : user,
+                    message : "User was not authorized"
+                }
+                if(!!user){
+                    req.session.login = true
+                    req.session.name = user.name
+                    req.session.email = user.email
+                    result.message = "User authorized succesful"
+                }
+                res.json(result)
             }
-            res.json(result)
+            else{
+                if(!!user){
+                    req.session.login = true
+                    req.session.name = user.name
+                    req.session.email = user.email
+                    res.redirect("/")
+                }
+                else {
+                    res.redirect("/signin")
+                }
+            }
         }
-        else{
-            if(result.status){
-                req.session.login = true
-                req.session.name = result.user.name
-                req.session.email = result.user.email
-                res.redirect("/")
+        catch (err) {
+            if (req.headers['content-type'] == 'application/json') {
+                const result = {
+                    status : false,
+                    user : null,
+                    message : err.message
+                }
+                res.json(result)
             }
             else {
                 res.redirect("/signin")
@@ -157,21 +187,23 @@ async function main() {
     })
 
     app.get('/auth/check', (req, res) => {
-        let rezult = {}
+        let result = {}
         if(req.session.login){
-            rezult = {status : req.session.login, name : req.session.name}
+            result = {status : req.session.login, name : req.session.name}
         }
         else {
-            rezult = {status : false}
+            result = {status : false}
         }
-        res.json(rezult)
+        res.json(result)
     })
-
-    // существует req.session.id
+    
     app.post('/public', urlensodedParser , async (req, res) => {
         if(req.session.login){
-            const id = await ideas.saveIdea(
-                {heading : req.body.heading, content :req.body.content},
+            await ideas.saveIdea(
+                {
+                    heading : req.body.heading,
+                    content :req.body.content
+                },
                 req.session.email
             )
             res.redirect("/")
@@ -182,29 +214,29 @@ async function main() {
     })
 
     app.get("/getlink", async (req, res) => {
-        const result = await ideas.getAllIdeas()
-        res.send(result)
+        res.send(await ideas.getAllIdeas())
     })
 
     app.get("/article/:id", async (req, res) => {
         const idea = await ideas.showIdea(req.params["id"])
-        if (!idea.status){
+        if (!idea){
             res.statusCode = 404
         }
         if (req.headers['content-type'] == 'application/json') {
             res.json(idea)
-        } else {
+        }
+        else {
             res.sendFile(path.join(__dirname, staticPath + "/stack_idea.html"))
         }
     })
 
     app.post("/suppup/:id", urlensodedParser, async (req, res) => {
-        const result = await ideas.ideaUp(req.session.email, req.params["id"])
+        await ideas.ideaUp(req.session.email, req.params["id"])
         res.end()
     })
 
     app.post("/suppdown/:id", urlensodedParser, async (req, res) => {
-        const result = await ideas.ideaDown(req.session.email, req.params["id"])
+        await ideas.ideaDown(req.session.email, req.params["id"])
         res.end()
     })
 }

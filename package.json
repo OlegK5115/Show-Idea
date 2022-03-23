@@ -12,6 +12,8 @@
     "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
     "test-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
     "test-support": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js",
+    "test-unit": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js ./tests/unit/users.js ./tests/unit/ideas.js",
+    "test-api": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/api/ideas-get.js ./tests/api/users/auth.js",
     "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js",
     "build": "tsc main.ts lib/*.ts tests/unit/*.ts tests/api/*.ts tests/api/users/auth.ts"
   },

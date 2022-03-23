@@ -24,18 +24,15 @@ describe('Users', function() {
 
         it('Getting user by mail', async function() {
             const user = await users.getUserByEmail(userData.email)
-            should(user).be.undefined
+            should(user).be.equal(null)
         })
 
         it('Trying signin user', async function() {
-            const result = await users.signin({
+            const user = await users.signin({
                 email : userData.email,
                 password : userData.password
             })
-            should(result).have.property('status')
-            should(result.status).be.equal(false)
-            should(result).have.property('message')
-            should(result.message).be.equal("Can't find user")
+            should(user).be.equal(null)
         })
 
     })
@@ -43,35 +40,41 @@ describe('Users', function() {
     context('There is no users', function() {
 
         it('Regirstration without data', async function() {
-            const result = await users.registration(null)
-            should(result).have.property('status')
-            should(result.status).be.equal(false)
-            should(result).have.property('message')
+            try {
+                const userid = await users.registration(null)
+                should.fail(userid, null, "Error UserID")
+            }
+            catch(err) {
+                should(err.message).be.equal("Missing data")
+            }
         })
 
         it('Regirstration user without name', async function() {
-            const result = await users.registration({
-                email : userData.email,
-                password : userData.password
-            })
-            should(result).have.property('status')
-            should(result.status).be.equal(false)
-            should(result).have.property('message')
+            try {
+                const userid = await users.registration({
+                    email : userData.email,
+                    password : userData.password
+                })
+                should.fail(userid, null, "Error UserID")
+            }
+            catch (err) {
+                should(err.message).be.equal("Missing name")
+            }
         })
 
         it('Regirstration user', async function() {
-            const result = await users.registration(userData)
-            should(result).have.property('status')
-            should(result.status).be.equal(true)
-            should(result).have.property('message')
-            should(result).have.property('userid')
+            const userid = await users.registration(userData)
+            should.notEqual(userid, null)
         })
 
         it('Regirstration user again', async function() {
-            const result = await users.registration(userData)
-            should(result).have.property('status')
-            should(result.status).be.equal(false)
-            should(result).have.property('message')
+            try {
+                const userid = await users.registration(userData)
+                should.fail(userid, null, "Error UserID")
+            }
+            catch (err) {
+                should(err.message).be.equal("This user is already registered")
+            }
         })
 
         after(function() {
@@ -82,25 +85,24 @@ describe('Users', function() {
     context('There is one user', function() {
 
         before(async function() {
-           const res = await users.registration(userData)
-           userData._id = res.userid
+            userData._id = await users.registration(userData)
         })
 
         it('Getting one user', async function() {
-            const resultUsers = await users.getAllUsers()
-            should(resultUsers).be.an.instanceOf(Array).and.have.lengthOf(1)
+            const allUsers = await users.getAllUsers()
+            should(allUsers).be.an.instanceOf(Array).and.have.lengthOf(1)
         })
 
         it('Getting one user using his email', async function() {
-            const resultUser = await users.getUserByEmail(userData.email)
-            should(resultUser).have.property("name", userData.name)
-            should(resultUser).have.property("email", userData.email)
-            should(resultUser).have.property("password", userData.password)
+            const user = await users.getUserByEmail(userData.email)
+            should(user).have.property("name", userData.name)
+            should(user).have.property("email", userData.email)
+            should(user).have.property("password", userData.password)
         })
 
         it('Trying find user using wrong email', async function() {
             const user = await users.getUserByEmail("wrong@example.com")
-            should(user).be.undefined
+            should(user).be.equal(null)
         })
 
         after(function() {

@@ -38,8 +38,17 @@ describe('user reqistration', function() {
             .send({user : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
+            should.notEqual(result.body, null)
+        })
+
+        it('User registration without data (failure)', async function() {
+            const result = await agent
+            .post('/registration')
+            .send({})
+            .set('X-Request-With', 'XMLHttpRequest')
+            .set('Content-Type', 'application/json')
             should(result.body).have.property('status')
-            should(result.body.status).equal(true)
+            should(result.body.status).equal(false)
             should(result.body).have.property('message')
         })
 
@@ -49,9 +58,9 @@ describe('user reqistration', function() {
             .send({email : 'dinosaur@example.com', pasword : 'roar'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            result.body.should.have.property('status')
-            result.body.status.should.equal(false)
-            result.body.should.have.property('message')
+            should(result.body).have.property("status")
+            should(result.body.status).be.equal(false)
+            should(result.body).have.property("message")
         })
 
         it('User signin', async function() {
@@ -60,9 +69,7 @@ describe('user reqistration', function() {
             .send({email : 'dinosaur@example.com', password : 'rrrrrrrr'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
-            result.body.should.have.property('status')
-            result.body.status.should.equal(true)
-            result.body.should.have.property('message')
+            should.notEqual(result.body, null)
         })
 
         it('Check authorization user', async function() {
