@@ -97,12 +97,24 @@ describe('Users', function() {
             const user = await users.getUserByEmail(userData.email)
             should(user).have.property("name", userData.name)
             should(user).have.property("email", userData.email)
-            should(user).have.property("password", userData.password)
         })
 
         it('Trying find user using wrong email', async function() {
             const user = await users.getUserByEmail("wrong@example.com")
             should(user).be.equal(null)
+        })
+
+        it('Trying signin with wrong password (failure)', async function() {
+            try {
+                const user = await users.signin({
+                    email : userData.email,
+                    password : "wrong1505"
+                })
+                should.fail(user, null, "Error User")
+            }
+            catch(err) {
+                should(err.message).be.equal("Wrong Password")
+            }
         })
 
         after(function() {

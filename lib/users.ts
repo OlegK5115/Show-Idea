@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcryptjs'
 import * as mongodb from 'mongodb'
 
 import * as connect from '../lib/connect'
@@ -46,12 +47,17 @@ export async function addUser(data) : Promise<mongodb.ObjectId> {
     const user = {
         name: data.name,
         email: data.email,
-        password: data.password,
+        password: await genHash(data.password),
         suppIdeas: [],
         unsuppIdeas: []
     }
 
     return (await users.insertOne(user)).insertedId
+}
+
+async function genHash(password) {
+    const salt = await bcrypt.genSalt(5)
+    return await bcrypt.hash(password, salt)
 }
 
 export async function signin(data) : Promise<User> {
@@ -61,11 +67,18 @@ export async function signin(data) : Promise<User> {
     else if(!data.password){
         throw new Error("Missing password")
     }
-
-    return await users.findOne({
-        email : data.email,
-        password : data.password
+    
+    const user = await users.findOne({
+        email : data.email
     })
+    if(user){
+        if(!(await bcrypt.compare(data.password, user.password))){
+            throw new Error("Wrong Password")
+        }
+        delete user.password
+    }
+
+    return user
 }
 
 export async function findIdeasSupport(mail, ideaid) : Promise<Boolean> {
@@ -117,8 +130,19 @@ export function getAllUsers() : Promise<User[]> {
         .toArray()
 }
 
-export function getUserByEmail(mail) : Promise<User> {
-    return users.findOne({email : mail})
+export async function getUserByEmail(mail) : Promise<User> {
+    if(!mail){
+        throw new Error("Missing email")
+    }
+
+    const user = await users.findOne({
+        email : mail
+    })
+    if(user){
+        delete user.password
+    }
+
+    return user
 }
 
 export function clearUsers() {

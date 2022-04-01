@@ -20,6 +20,7 @@
   "author": "Oleg",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "config": "^3.3.6",
     "connect-redis": "^6.0.0",
     "cookie-parser": "^1.4.5",
