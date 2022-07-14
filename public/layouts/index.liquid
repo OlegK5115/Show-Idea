@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Show Idea</title>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="/styles/style.css"/>
+        <script defer src="/javascript/liquid.browser.min.js"></script>
+        <script defer src="/javascript/script.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1 id="site-name"><a href="/">Show Your Idea</a></h1>
+            {% if login %}
+            <h3 id="user-name">{{name}}</h3>
+            {% endif %}
+            <nav>
+                <ul id="main-menu">
+                    <li {% if login %} hidden {% endif %}>
+                        <a href="/signin">Sign In</a>
+                    </li>
+                    <li {% if login %} hidden {% endif %}>
+                        <a href="/registration">Registration</a>
+                    </li>
+                    <li id="publish-link" {% unless login %} hidden {% endunless %}>
+                        <a href="/publish">Publish</a>
+                    </li>
+                    <li id="logout-link" {% unless login %} hidden {% endunless %}>
+                        <form action="/users/logout" method="POST">
+                            <button>Log Out</button>
+                        </form>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+        <div id="main">
+            {% block %}{% endblock %}
+        </div>
+
+        <footer>
+            <p>&copy; Oleg Konnik</p>
+            <p><a href="mailto:Konnik.oleg.05@mail.ru">Konnik.oleg.05@mail.ru</a></p>
+        </footer>
+    </body>
+</html>

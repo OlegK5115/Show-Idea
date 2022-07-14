@@ -6,7 +6,6 @@ import * as users from '../lib/users'
 export interface Idea {
     heading : String,
     content : String,
-    support ?: number,
     authorId ?: mongodb.ObjectId,
     _id ?: mongodb.ObjectId
 }
@@ -42,7 +41,6 @@ export async function saveIdea(newIdea, email) : Promise<mongodb.ObjectId> {
     const idea = {
         heading : newIdea.heading,
         content : newIdea.content,
-        support : 0,
         authorId : authorId
     }
     return (await ideas.insertOne(idea)).insertedId
@@ -51,104 +49,21 @@ export async function saveIdea(newIdea, email) : Promise<mongodb.ObjectId> {
 export function getAllIdeas() {
     return ideas
         .find()
-        .sort( {support : -1} )
         .toArray()
 }
 
-export async function showIdea(id : string) : Promise<Idea> {
-    return await ideas.findOne({_id : new mongodb.ObjectId(id)})
-}
+export async function getIdeaByID(id) : Promise<Idea> {
+    if(typeof(id) == 'string') {
+        id = new mongodb.ObjectId(id)
+    }
 
-export async function ideaUp(mail, ideaid) : Promise<number> {
-    const resultBool1 = await users.findIdeasSupport(mail, ideaid)
-    const resultBool2 = await users.findIdeasUnsupport(mail, ideaid)
+    if(!id){
+        throw new Error("Missing id")
+    }
 
-    if(!resultBool1 && !resultBool2) {
-        await ideas.findOneAndUpdate(
-            {_id : new mongodb.ObjectId(ideaid)},
-            {$inc : {support : 1}}
-        )
-        await users.pushSupport(mail, ideaid)
-        const idea = await ideas.findOne({
-            _id : new mongodb.ObjectId(ideaid)
-        })
-        return idea.support
-    }
-    else if(resultBool2){
-        await ideas.findOneAndUpdate(
-            {_id : new mongodb.ObjectId(ideaid)},
-            {$inc : {support : 2}
-        })
-
-        if(!await users.pullUnsupport(mail, ideaid)){
-            throw new Error("Error pull unsupport")
-        }
-        if(!await users.pushSupport(mail, ideaid)) {
-            throw new Error("Error push support")
-        }
-        const idea = await ideas.findOne({_id : new mongodb.ObjectId(ideaid)})
-        return idea.support
-    }
-    else {
-        await ideas.findOneAndUpdate(
-            {_id : new mongodb.ObjectId(ideaid)},
-            {$inc : {support : -1}}
-        )
-
-        if (!await users.pullSupport(mail, ideaid)) {
-            throw new Error("Error pull support")
-        }
-        const idea = await ideas.findOne({
-            _id : new mongodb.ObjectId(ideaid)
-        })
-        return idea.support
-    }
-}
-
-export async function ideaDown(mail, ideaid) : Promise<number> {
-    const resultBool1 = await users.findIdeasSupport(mail, ideaid)
-    const resultBool2 = await users.findIdeasUnsupport(mail, ideaid)
-    if(!resultBool1 && !resultBool2){
-        await ideas.findOneAndUpdate(
-            {_id : new mongodb.ObjectId(ideaid)},
-            {$inc : {support : -1}}
-        )
-        await users.pushUnsupport(mail, ideaid)
-        const idea = await ideas.findOne({
-            _id : new mongodb.ObjectId(ideaid)
-        })
-        return idea.support
-    }
-    else if(resultBool1){
-        await ideas.findOneAndUpdate(
-            {_id : new mongodb.ObjectId(ideaid)},
-            {$inc : {support : -2}
-        })
-        
-        if(!await users.pullSupport(mail, ideaid)){
-            throw new Error("Error pull support")
-        }
-        if(!await users.pushUnsupport(mail, ideaid)){
-            throw new Error("Error push unsupport")
-        }
-        const idea = await ideas.findOne({
-            _id : new mongodb.ObjectId(ideaid)
-        })
-        return idea.support
-    }
-    else {
-        await ideas.findOneAndUpdate(
-            {_id : new mongodb.ObjectId(ideaid)},
-            {$inc : {support : 1}
-        })
-        if(!await users.pullUnsupport(mail, ideaid)) {
-            throw new Error("Error pull unsupport")
-        }
-        const idea = await ideas.findOne({
-            _id : new mongodb.ObjectId(ideaid)
-        })
-        return idea.support
-    }
+    return await ideas.findOne({
+        _id : id
+    })
 }
 
 export function clearIdeas() {

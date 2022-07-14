@@ -9,13 +9,13 @@
   "scripts": {
     "start": "NODE_ENV=production MODE=production DEBUG=Show-Idea node ./main.js",
     "test": "npm run test-ideas; npm run test-users; npm run test-support",
-    "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/ideas-get.js",
+    "test-ideas": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/ideas.js ./tests/api/*.js",
     "test-users": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/users.js ./tests/api/users/auth.js",
     "test-support": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js",
-    "test-unit": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/support.js ./tests/unit/users.js ./tests/unit/ideas.js",
-    "test-api": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/api/ideas-get.js ./tests/api/users/auth.js",
+    "test-unit": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/unit/*.js",
+    "test-api": "NODE_ENV=testing MODE=testing DEBUG=Show-Idea mocha --require should -R spec --exit --check-leaks ./tests/api/*.js ./tests/api/users/auth.js",
     "watch": "NODE_ENV=development MODE=development DEBUG=Show-Idea nodemon ./main.js",
-    "build": "tsc main.ts lib/*.ts tests/unit/*.ts tests/api/*.ts tests/api/users/auth.ts"
+    "build": "tsc main.ts api/*.ts routes/*.ts lib/*.ts tests/unit/*.ts tests/api/*.ts tests/api/users/auth.ts"
   },
   "author": "Oleg",
   "license": "ISC",
@@ -26,11 +26,13 @@
     "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
+    "liquidjs": "^9.36.0",
     "mongodb": "^4.0.1",
     "morgan": "^1.10.0",
     "redis": "^3.1.2"
   },
   "devDependencies": {
+    "@types/express": "^4.17.13",
     "@types/mocha": "^9.0.0",
     "@types/mongodb": "^4.0.7",
     "@types/should": "^13.0.0",

@@ -1,6 +1,7 @@
 const should = require('should')
 import * as ideas from '../../lib/ideas'
 import * as users from '../../lib/users'
+import * as support from '../../lib/support'
 
 describe('Support', function() {
     const user : users.User = {
@@ -21,9 +22,32 @@ describe('Support', function() {
     before(async function() {
         await ideas.setup()
         await users.setup()
+        await support.setup()
         await ideas.clearIdeas()
         await users.clearUsers()
         return
+    })
+
+    context('There is one Ideas', function() {
+
+        before(async function() {
+            idea1._id = await ideas.saveIdea(idea1, user.email)
+        })
+
+        it('Support idea with wrong mail', async function() {
+            try{
+                const result = await support.setSupport(null, idea1._id, 1)
+                should.fail(result, null, "Error support idea")
+            }
+            catch(err) {
+                should(err.message).be.equal("Missing id")
+            }
+        })
+
+        after(async function() {
+            await ideas.clearIdeas()
+        })
+
     })
 
     context('There are two Ideas', function() {
@@ -36,39 +60,45 @@ describe('Support', function() {
         
         
         it('Support idea', async function() {
-            const support = await ideas.ideaUp(user.email, idea1._id)
-            should(support).be.equal(1)
+            await support.setSupport(user._id, idea1._id, 1)
+            const result = await support.getSupportForIdea(idea1._id)
+            should(result).be.equal(1)
         })
     
         it('Support idea again', async function() {
-            const support = await ideas.ideaUp(user.email, idea1._id)
-            should(support).be.equal(0)
+            await support.setSupport(user._id, idea1._id, 1)
+            const result = await support.getSupportForIdea(idea1._id)
+            should(result).be.equal(0)
         })
     
         it('Flip up idea support', async function() {
-            await ideas.ideaDown(user.email, idea1._id)
-            const support = await ideas.ideaUp(user.email, idea1._id)
-            should(support).be.equal(1)
+            await support.setSupport(user._id, idea1._id, -1)
+            await support.setSupport(user._id, idea1._id, 1)
+            const result = await support.getSupportForIdea(idea1._id)
+            should(result).be.equal(1)
         })
         
         it('Unsupport idea', async function() {
-            const support = await ideas.ideaDown(user.email, idea1._id)
-            should(support).be.equal(-1)
+            await support.setSupport(user._id, idea1._id, -1)
+            const result = await support.getSupportForIdea(idea1._id)
+            should(result).be.equal(-1)
         })
         
         it('Unsupport idea again', async function() {
-            const support = await ideas.ideaDown(user.email, idea1._id)
-            should(support).be.equal(0)
+            await support.setSupport(user._id, idea1._id, -1)
+            const result = await support.getSupportForIdea(idea1._id)
+            should(result).be.equal(0)
         })
     
         it('Flip down idea support', async function() {
-            await ideas.ideaUp(user.email, idea1._id)
-            const support = await ideas.ideaDown(user.email, idea1._id)
-            should(support).be.equal(-1)
+            await support.setSupport(user._id, idea1._id, 1)
+            await support.setSupport(user._id, idea1._id, -1)
+            const result = await support.getSupportForIdea(idea1._id)
+            should(result).be.equal(-1)
         })
     
-        it('Getting list of Ideas', async function(){
-            const allIdeas = await ideas.getAllIdeas()
+        it('Check sort ideas by support', async function(){
+            const allIdeas = await support.sortIdeasBySupport(await ideas.getAllIdeas())
             should(allIdeas).be.an.instanceOf(Array).and.have.lengthOf(2)
             should(allIdeas[0]).have.property("_id", idea2._id)
             should(allIdeas[0]).have.property("heading", idea2.heading)

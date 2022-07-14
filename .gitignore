@@ -1,4 +1,6 @@
 main.js
+api/*.js
+routes/*.js
 lib/*.js
 tests/unit/*.js
 tests/api/*.js

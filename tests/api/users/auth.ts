@@ -20,12 +20,18 @@ describe('user reqistration', function() {
         agent = supertest.agent(app, {})
         return
     })
+
+    const userData : usersDb.User = {
+        name : 'dinosaur',
+        email : 'dinosaur@example.com',
+        password : 'rrrrrrrr'
+    }
     
     context('Registration, signin and logout', function() {
 
         it('Check authorization anonimous user', async function() {
             const result = await agent
-            .get('/auth/check')
+            .get('/api/users/check')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             should(result.body).have.property('status')
@@ -34,16 +40,18 @@ describe('user reqistration', function() {
 
         it('User registration', async function() {
             const result = await agent
-            .post('/registration')
-            .send({user : 'dinosaur', email : 'dinosaur@example.com', password : 'rrrrrrrr'})
+            .post('/api/users')
+            .send(userData)
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
+            
             should.notEqual(result.body, null)
+            userData._id = result._id
         })
 
         it('User registration without data (failure)', async function() {
             const result = await agent
-            .post('/registration')
+            .post('/api/users')
             .send({})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
@@ -54,8 +62,8 @@ describe('user reqistration', function() {
 
         it('Wrong user signin', async function() {
             const result = await agent
-            .post('/signin')
-            .send({email : 'dinosaur@example.com', pasword : 'roar'})
+            .post('/api/users/signin')
+            .send({email : 'dinosaur@example.com', password : 'roar'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             should(result.body).have.property("status")
@@ -65,7 +73,7 @@ describe('user reqistration', function() {
 
         it('User signin', async function() {
             const result = await agent
-            .post('/signin')
+            .post('/api/users/signin')
             .send({email : 'dinosaur@example.com', password : 'rrrrrrrr'})
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
@@ -74,7 +82,7 @@ describe('user reqistration', function() {
 
         it('Check authorization user', async function() {
             const result = await agent
-            .get('/auth/check')
+            .get('/api/users/check')
             .set('X-Request-With', 'XMLHttpRequest')
             .set('Content-Type', 'application/json')
             result.body.should.have.property('status')
@@ -85,9 +93,9 @@ describe('user reqistration', function() {
 
         it('User logout', async function(){
             const result = await agent
-            .get('/auth/logout')
-            .set('X-Request-With', 'XMLHttpRequest')
-            .set('Content-Type', 'application/json')
+                .post('/api/users/logout')
+                .set('X-Request-With', 'XMLHttpRequest')
+                .set('Content-Type', 'application/json')
             result.body.should.have.property('status')
             result.body.status.should.equal(true)
             result.body.should.have.property('deleteName')

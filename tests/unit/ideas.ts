@@ -61,7 +61,7 @@ describe('Ideas', function(){
         })
 
         it('Getting idea by id', async function() {
-            const idea = await ideas.showIdea(ideaData._id.toString())
+            const idea = await ideas.getIdeaByID(ideaData._id.toString())
             should.notEqual(idea, null)
             should(idea).have.property("heading")
             should(idea.heading).be.equal(ideaData.heading)
@@ -72,7 +72,7 @@ describe('Ideas', function(){
         })
 
         it('Getting idea by wrong id', async function() {
-            const idea = await ideas.showIdea('aaaaaaaaaaaaaaaaaaaaaaaa')
+            const idea = await ideas.getIdeaByID('aaaaaaaaaaaaaaaaaaaaaaaa')
             should(idea).be.equal(null)
         })
 

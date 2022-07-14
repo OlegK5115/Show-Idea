@@ -1,0 +1,46 @@
+<div>
+    <h2>Stack Ideas</h2>
+    <table id="list-of-ideas">
+        <thead>
+            <tr>
+                <th>Pos</th>
+                <th>Name</th>
+                <th>Likes</th>
+                <th>Sup</th>
+                <th>Unsup</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idea in ideas %}
+                <tr>
+                    <td>{{idea.position}}</td>
+                    <td><a href={{"/ideas/" | append : idea._id}}>{{idea.heading}}</a></td>
+                    <td>{{idea.support}}</td>
+                    <td>
+                        <form action={{"ideas/" | append : idea._id | append : "/supp"}} method="POST">
+                            <input name="id" type="hidden" value="{{idea._id}}"/>
+                            <input type="submit" value="Sup"/>
+                        </form>
+                    </td>
+                    <td>
+                        <form action={{"ideas/" | append : idea._id | append : "/unsupp"}} method="POST">
+                            <input name="id" type="hidden" value="{{idea._id}}"/>
+                            <input type="submit" value="Unsup"/>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if prev %}
+    <a href={{ "/?skip=" | append : prev | append : "&limit=" | append : limit }}>prev</a>
+    {% else %}
+    prev
+    {% endif %}
+
+    {% if next %}
+    <a href={{ "/?skip=" | append : next | append : "&limit=" | append : limit }}>next</a>
+    {% else %}
+    next
+    {% endif %}
+</div>
